@@ -155,7 +155,10 @@
 
 </div>
 
-
+<button id="confirmButton" style="display:none; background:#00b86b; color:white;">
+  CONFIRM VIN
+</button>
+  
 <button id="scanButton" disabled>
   STARTING CAMERA...
 </button>
@@ -199,6 +202,11 @@ const scanButton =
 const retryButton =
   document.getElementById("retryButton");
 
+  const confirmButton =
+  document.getElementById("confirmButton");
+
+let detectedVIN = "";
+  
 const statusBox =
   document.getElementById("status");
 
@@ -210,7 +218,10 @@ const vinResult =
 
 let stream = null;
 
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeFrEttl7fh8lmSzBJGO852xYTTsV5BrjHssoj2IK4biAhJLApLMs1qUIbbAlsbHWXsw/exec";
 
+const params = new URLSearchParams(window.location.search);
+const UNIT_ID = params.get("unitId") || "";
 /* ==============================
    START PHONE CAMERA
 ================================ */
@@ -542,7 +553,8 @@ async function scanVIN() {
 
     vinResult.innerText =
       vin;
-
+detectedVIN = vin;
+confirmButton.style.display = "block";
 
     resultBox.style.display =
       "block";
@@ -771,7 +783,52 @@ retryButton.addEventListener(
   }
 );
 
+confirmButton.addEventListener("click", async function () {
 
+  if (!detectedVIN) {
+    statusBox.innerText = "No VIN detected.";
+    return;
+  }
+
+  if (!UNIT_ID) {
+    statusBox.innerText =
+      "Scanner works, but no Unit ID was received from AppSheet yet.";
+    return;
+  }
+
+  confirmButton.disabled = true;
+
+  statusBox.innerText =
+    "Saving VIN to inventory...";
+
+  const saveURL =
+    APPS_SCRIPT_URL +
+    "?action=save" +
+    "&unitId=" + encodeURIComponent(UNIT_ID) +
+    "&vin=" + encodeURIComponent(detectedVIN);
+
+  try {
+
+    await fetch(saveURL, {
+      method: "GET",
+      mode: "no-cors"
+    });
+
+    statusBox.innerText =
+      "VIN SENT SUCCESSFULLY";
+
+    confirmButton.style.display = "none";
+    retryButton.style.display = "none";
+
+  } catch (error) {
+
+    statusBox.innerText =
+      "SAVE ERROR: " + error.message;
+
+    confirmButton.disabled = false;
+  }
+
+});
 /* ==============================
    START
 ================================ */

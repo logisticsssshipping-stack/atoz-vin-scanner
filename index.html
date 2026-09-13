@@ -1,336 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
-  >
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-  <title>A-to-Z VIN Scanner</title>
+<title>A-to-Z VIN Scanner</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* { box-sizing: border-box; }
 
-    body {
-      margin: 0;
-      padding: 16px;
-      background: #0d0f12;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+body {
+  margin: 0;
+  padding: 14px;
+  background: #0b0d10;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
 
-    h1 {
-      margin: 5px 0;
-      font-size: 25px;
-    }
+h1 {
+  margin: 4px 0;
+  font-size: 24px;
+}
 
-    .subtitle {
-      color: #aaa;
-      margin-bottom: 18px;
-    }
+.subtitle {
+  color: #aaa;
+  margin-bottom: 12px;
+}
 
-    #cameraBox {
-      position: relative;
-      width: 100%;
-      max-width: 700px;
-      margin: auto;
-      background: black;
-      overflow: hidden;
-      border-radius: 14px;
-    }
+#cameraBox {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  margin: auto;
+  background: black;
+  overflow: hidden;
+  border-radius: 14px;
+}
 
-    video {
-      width: 100%;
-      display: block;
-      background: black;
-    }
+video {
+  width: 100%;
+  display: block;
+}
 
-    #vinGuide {
-      position: absolute;
-      left: 3%;
-      right: 3%;
-      top: 42%;
-      height: 70px;
+#shadeTop,
+#shadeBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,.38);
+  pointer-events: none;
+}
 
-      border: 3px solid #00ff88;
-      border-radius: 8px;
+#shadeTop {
+  top: 0;
+  height: 42%;
+}
 
-      box-shadow:
-        0 0 0 9999px rgba(0,0,0,0.18),
-        0 0 15px rgba(0,255,136,0.4);
+#shadeBottom {
+  bottom: 0;
+  height: 42%;
+}
 
-      pointer-events: none;
-    }
+#vinGuide {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  top: 42%;
+  height: 16%;
 
-    #guideLabel {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: calc(42% - 31px);
+  min-height: 62px;
 
-      color: #00ff88;
-      font-weight: bold;
-      font-size: 13px;
+  border: 3px solid #00ff88;
+  border-radius: 9px;
 
-      text-shadow: 1px 1px 3px black;
-    }
+  box-shadow:
+    0 0 12px rgba(0,255,136,.7);
 
-    #scanIndicator {
-      display: none;
+  pointer-events: none;
+}
 
-      position: absolute;
-      left: 3%;
-      right: 3%;
-      top: 42%;
+#guideText {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(42% - 30px);
 
-      height: 3px;
+  color: #00ff88;
+  font-size: 13px;
+  font-weight: bold;
 
-      background: #00ff88;
+  text-shadow: 0 1px 4px black;
+}
 
-      box-shadow:
-        0 0 10px #00ff88;
+#scanLine {
+  display: none;
 
-      animation: scanMove 1.2s infinite alternate;
-    }
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 43%;
 
-    @keyframes scanMove {
-      from {
-        transform: translateY(5px);
-      }
+  height: 2px;
 
-      to {
-        transform: translateY(62px);
-      }
-    }
+  background: #00ff88;
 
-    button {
-      width: 100%;
-      max-width: 700px;
+  box-shadow:
+    0 0 10px #00ff88;
 
-      padding: 16px;
-      margin-top: 14px;
+  animation: scanning 1s infinite alternate ease-in-out;
+}
 
-      border: 0;
-      border-radius: 10px;
+@keyframes scanning {
+  from {
+    transform: translateY(3px);
+  }
 
-      font-size: 18px;
-      font-weight: bold;
+  to {
+    transform: translateY(55px);
+  }
+}
 
-      cursor: pointer;
-    }
+#status {
+  max-width: 700px;
+  margin: 14px auto 5px;
+  min-height: 24px;
 
-    button:disabled {
-      opacity: 0.45;
-    }
+  font-size: 16px;
+  color: #ddd;
+}
 
-    #scanButton {
-      background: #1478ff;
-      color: white;
-    }
+#smallStatus {
+  max-width: 700px;
+  margin: 5px auto 12px;
 
-    #confirmButton {
-      display: none;
-      background: #00b86b;
-      color: white;
-    }
+  min-height: 18px;
 
-    #retryButton {
-      display: none;
-      background: #444;
-      color: white;
-    }
+  font-size: 13px;
+  color: #888;
+}
 
-    #manualButton {
-      background: transparent;
-      color: #aaa;
-      border: 1px solid #444;
-    }
+#result {
+  display: none;
 
-    #status {
-      margin: 16px auto;
-      max-width: 700px;
-      min-height: 25px;
-      color: #ddd;
-    }
+  max-width: 700px;
 
-    #attemptInfo {
-      margin: 5px auto;
-      color: #777;
-      font-size: 13px;
-      min-height: 16px;
-    }
+  margin: 14px auto;
+  padding: 18px;
 
-    #result {
-      display: none;
+  border-radius: 12px;
 
-      max-width: 700px;
+  background: #1a1d21;
+  border: 1px solid #333;
+}
 
-      margin: 15px auto;
-      padding: 18px;
+.success {
+  color: #00ff88;
+  font-weight: bold;
+  font-size: 14px;
+}
 
-      background: #1b1e22;
-      border-radius: 12px;
+#vinResult {
+  margin-top: 9px;
 
-      border: 1px solid #333;
-    }
+  font-size: 23px;
+  font-weight: bold;
 
-    .detectedLabel {
-      color: #00ff88;
-      font-size: 13px;
-      font-weight: bold;
-    }
+  letter-spacing: 1.4px;
+  word-break: break-all;
+}
 
-    #vinResult {
-      margin-top: 8px;
+#vehicleResult {
+  margin-top: 12px;
 
-      font-size: 22px;
-      font-weight: bold;
+  font-size: 19px;
+  color: #00ff88;
+}
 
-      letter-spacing: 1.5px;
-      word-break: break-all;
-    }
+button {
+  width: 100%;
+  max-width: 700px;
 
-    #vehicleResult {
-      margin-top: 12px;
+  margin-top: 10px;
+  padding: 16px;
 
-      font-size: 19px;
+  border: 0;
+  border-radius: 10px;
 
-      color: #00ff88;
-    }
+  font-size: 17px;
+  font-weight: bold;
 
-    #manualBox {
-      display: none;
+  cursor: pointer;
+}
 
-      max-width: 700px;
+#confirmButton {
+  display: none;
+  background: #00b86b;
+  color: white;
+}
 
-      margin: 15px auto;
-      padding: 16px;
+#retryButton {
+  display: none;
+  background: #333;
+  color: white;
+}
 
-      background: #1b1e22;
-      border-radius: 12px;
-    }
+#manualButton {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #444;
+}
 
-    #manualVIN {
-      width: 100%;
+#manualBox {
+  display: none;
 
-      padding: 15px;
+  max-width: 700px;
 
-      border-radius: 8px;
-      border: 1px solid #555;
+  margin: 12px auto;
+  padding: 14px;
 
-      background: #111;
-      color: white;
+  border-radius: 10px;
 
-      text-transform: uppercase;
+  background: #191c20;
+}
 
-      font-size: 18px;
-      letter-spacing: 1px;
-    }
+#manualVIN {
+  width: 100%;
+  padding: 14px;
 
-    #manualSubmit {
-      background: #1478ff;
-      color: white;
-    }
+  background: #0d0f12;
+  color: white;
 
-    canvas {
-      display: none;
-    }
-  </style>
+  border: 1px solid #555;
+  border-radius: 8px;
+
+  font-size: 18px;
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+#manualSubmit {
+  background: #1478ff;
+  color: white;
+}
+
+canvas {
+  display: none;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>A-to-Z Yard</h1>
+<h1>A-to-Z Yard</h1>
 
-  <div class="subtitle">
-    Smart Vehicle VIN Scanner
+<div class="subtitle">
+  Automatic VIN Scanner
+</div>
+
+
+<div id="cameraBox">
+
+  <video
+    id="video"
+    autoplay
+    muted
+    playsinline>
+  </video>
+
+  <div id="shadeTop"></div>
+  <div id="shadeBottom"></div>
+
+  <div id="guideText">
+    PLACE ONLY ONE VIN INSIDE THE BOX
   </div>
 
-  <div id="cameraBox">
+  <div id="vinGuide"></div>
 
-    <video
-      id="video"
-      autoplay
-      muted
-      playsinline>
-    </video>
+  <div id="scanLine"></div>
 
-    <div id="guideLabel">
-      ALIGN ALL 17 VIN CHARACTERS INSIDE BOX
-    </div>
+</div>
 
-    <div id="vinGuide"></div>
 
-    <div id="scanIndicator"></div>
+<div id="status">
+  Starting camera...
+</div>
 
+<div id="smallStatus">
+  No button needed — scanning starts automatically.
+</div>
+
+
+<div id="result">
+
+  <div class="success">
+    ✓ VIN FOUND
   </div>
 
-  <button
-    id="scanButton"
-    disabled>
-    STARTING CAMERA...
+  <div id="vinResult"></div>
+
+  <div id="vehicleResult"></div>
+
+</div>
+
+
+<button id="confirmButton">
+  CONFIRM & CONTINUE
+</button>
+
+<button id="retryButton">
+  SCAN AGAIN
+</button>
+
+<button id="manualButton">
+  ENTER VIN MANUALLY
+</button>
+
+
+<div id="manualBox">
+
+  <input
+    id="manualVIN"
+    maxlength="17"
+    autocomplete="off"
+    autocapitalize="characters"
+    placeholder="17-CHARACTER VIN">
+
+  <button id="manualSubmit">
+    USE VIN
   </button>
 
-  <div id="status">
-    Requesting camera access...
-  </div>
+</div>
 
-  <div id="attemptInfo"></div>
 
-  <div id="result">
+<canvas id="captureCanvas"></canvas>
+<canvas id="processCanvas"></canvas>
 
-    <div class="detectedLabel">
-      VIN DETECTED
-    </div>
-
-    <div id="vinResult"></div>
-
-    <div id="vehicleResult"></div>
-
-  </div>
-
-  <button id="confirmButton">
-    CONFIRM VIN & CONTINUE
-  </button>
-
-  <button id="retryButton">
-    SCAN AGAIN
-  </button>
-
-  <button id="manualButton">
-    ENTER VIN MANUALLY
-  </button>
-
-  <div id="manualBox">
-
-    <input
-      id="manualVIN"
-      maxlength="17"
-      autocomplete="off"
-      autocapitalize="characters"
-      placeholder="ENTER 17-CHARACTER VIN"
-    >
-
-    <button id="manualSubmit">
-      USE THIS VIN
-    </button>
-
-  </div>
-
-  <canvas id="canvas"></canvas>
-  <canvas id="processedCanvas"></canvas>
 
 <script>
 
-/* =========================================
-   APPSHEET
-========================================= */
+/* ==================================================
+   APPSHEET SETTINGS
+================================================== */
 
 const APP_ID =
   "c9b42286-9e3c-4647-a376-6b7823b93237";
@@ -339,21 +354,36 @@ const FORM_VIEW =
   "A-to-Z Yard Inventory V1_Form";
 
 
-/* =========================================
+/* ==================================================
    ELEMENTS
-========================================= */
+================================================== */
 
 const video =
   document.getElementById("video");
 
-const canvas =
-  document.getElementById("canvas");
+const captureCanvas =
+  document.getElementById("captureCanvas");
 
-const processedCanvas =
-  document.getElementById("processedCanvas");
+const processCanvas =
+  document.getElementById("processCanvas");
 
-const scanButton =
-  document.getElementById("scanButton");
+const statusBox =
+  document.getElementById("status");
+
+const smallStatus =
+  document.getElementById("smallStatus");
+
+const scanLine =
+  document.getElementById("scanLine");
+
+const resultBox =
+  document.getElementById("result");
+
+const vinResult =
+  document.getElementById("vinResult");
+
+const vehicleResult =
+  document.getElementById("vehicleResult");
 
 const confirmButton =
   document.getElementById("confirmButton");
@@ -373,30 +403,14 @@ const manualVIN =
 const manualSubmit =
   document.getElementById("manualSubmit");
 
-const statusBox =
-  document.getElementById("status");
 
-const attemptInfo =
-  document.getElementById("attemptInfo");
-
-const resultBox =
-  document.getElementById("result");
-
-const vinResult =
-  document.getElementById("vinResult");
-
-const vehicleResult =
-  document.getElementById("vehicleResult");
-
-const scanIndicator =
-  document.getElementById("scanIndicator");
-
-
-/* =========================================
-   VARIABLES
-========================================= */
+/* ==================================================
+   STATE
+================================================== */
 
 let stream = null;
+
+let worker = null;
 
 let scanning = false;
 
@@ -408,34 +422,35 @@ let detectedMake = "";
 
 let detectedModel = "";
 
-let worker = null;
+let scanRound = 0;
 
-const candidateVotes = {};
+const votes = {};
 
-const MAX_ROUNDS = 6;
-
-const REQUIRED_VOTES = 2;
+const MAX_ROUNDS = 10;
 
 
-/* =========================================
-   CAMERA
-========================================= */
+/* ==================================================
+   START CAMERA
+================================================== */
 
 async function startCamera() {
 
   try {
 
+    statusBox.innerText =
+      "Opening rear camera...";
+
     if (
       !navigator.mediaDevices ||
       !navigator.mediaDevices.getUserMedia
     ) {
+
       throw new Error(
-        "Camera not supported by this browser."
+        "Camera is not supported."
       );
+
     }
 
-    statusBox.innerText =
-      "Waiting for camera permission...";
 
     stream =
       await navigator.mediaDevices.getUserMedia({
@@ -460,41 +475,48 @@ async function startCamera() {
 
       });
 
+
     video.srcObject =
       stream;
 
     await video.play();
 
-    await waitForCamera();
+    await waitForVideo();
 
-    await setupCameraFocus();
+    await configureCamera();
 
     statusBox.innerText =
-      "Camera ready. Align the full VIN inside the green box.";
+      "Preparing VIN reader...";
 
-    scanButton.disabled =
-      false;
+    await prepareOCR();
 
-    scanButton.innerText =
-      "SCAN VIN";
+    await sleep(300);
 
-  } catch (error) {
+    beginAutomaticScanning();
+
+  }
+
+  catch (error) {
 
     console.error(error);
 
     statusBox.innerText =
-      "CAMERA ERROR: " +
+      "Camera error: " +
       error.message;
 
-    scanButton.innerText =
-      "CAMERA NOT AVAILABLE";
+    smallStatus.innerText =
+      "You can enter the VIN manually below.";
 
   }
 
 }
 
 
-function waitForCamera() {
+/* ==================================================
+   WAIT FOR CAMERA
+================================================== */
+
+function waitForVideo() {
 
   return new Promise(
     function(resolve, reject) {
@@ -513,18 +535,17 @@ function waitForCamera() {
             ) {
 
               clearInterval(timer);
-
               resolve();
 
             }
 
-            if (tries > 60) {
+            if (tries > 80) {
 
               clearInterval(timer);
 
               reject(
                 new Error(
-                  "Camera opened but video was not ready."
+                  "Camera video did not start."
                 )
               );
 
@@ -540,25 +561,29 @@ function waitForCamera() {
 }
 
 
-/* =========================================
-   CAMERA FOCUS
-========================================= */
+/* ==================================================
+   CAMERA AUTOFOCUS
+================================================== */
 
-async function setupCameraFocus() {
+async function configureCamera() {
 
   try {
 
     const track =
       stream.getVideoTracks()[0];
 
+    if (!track) {
+      return;
+    }
+
     const capabilities =
       track.getCapabilities
         ? track.getCapabilities()
         : {};
 
-    const constraints = {
-      advanced: []
-    };
+
+    const advanced = [];
+
 
     if (
       capabilities.focusMode &&
@@ -567,11 +592,12 @@ async function setupCameraFocus() {
       )
     ) {
 
-      constraints.advanced.push({
+      advanced.push({
         focusMode: "continuous"
       });
 
     }
+
 
     if (
       capabilities.exposureMode &&
@@ -580,11 +606,12 @@ async function setupCameraFocus() {
       )
     ) {
 
-      constraints.advanced.push({
+      advanced.push({
         exposureMode: "continuous"
       });
 
     }
+
 
     if (
       capabilities.whiteBalanceMode &&
@@ -593,24 +620,27 @@ async function setupCameraFocus() {
       )
     ) {
 
-      constraints.advanced.push({
+      advanced.push({
         whiteBalanceMode: "continuous"
       });
 
     }
 
-    if (constraints.advanced.length > 0) {
 
-      await track.applyConstraints(
-        constraints
-      );
+    if (advanced.length) {
+
+      await track.applyConstraints({
+        advanced: advanced
+      });
 
     }
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.log(
-      "Advanced camera controls unavailable.",
+      "Advanced camera settings unavailable.",
       error
     );
 
@@ -619,9 +649,9 @@ async function setupCameraFocus() {
 }
 
 
-/* =========================================
-   TESSERACT WORKER
-========================================= */
+/* ==================================================
+   OCR WORKER
+================================================== */
 
 async function prepareOCR() {
 
@@ -629,188 +659,174 @@ async function prepareOCR() {
     return;
   }
 
-  statusBox.innerText =
-    "Preparing VIN reader...";
 
   worker =
     await Tesseract.createWorker(
-      "eng",
-      1,
-      {
-        logger: function(message) {
-
-          if (
-            message.status ===
-            "recognizing text"
-          ) {
-
-            const percent =
-              Math.round(
-                message.progress * 100
-              );
-
-            statusBox.innerText =
-              "Reading VIN... " +
-              percent +
-              "%";
-
-          }
-
-        }
-      }
+      "eng"
     );
+
 
   await worker.setParameters({
 
     tessedit_char_whitelist:
       "ABCDEFGHJKLMNPRSTUVWXYZ0123456789",
 
-    preserve_interword_spaces:
-      "1"
+    tessedit_pageseg_mode:
+      "7"
 
   });
 
 }
 
 
-/* =========================================
-   START SCAN
-========================================= */
+/* ==================================================
+   AUTOMATIC SCANNING
+================================================== */
 
-scanButton.addEventListener(
-  "click",
-  startSmartScan
-);
-
-
-async function startSmartScan() {
-
-  if (scanning) {
-    return;
-  }
-
-  if (
-    !video.videoWidth ||
-    !video.videoHeight
-  ) {
-
-    statusBox.innerText =
-      "Camera is not ready yet.";
-
-    return;
-
-  }
+function beginAutomaticScanning() {
 
   scanning = true;
 
-  detectedVIN = "";
+  scanRound = 0;
 
   clearVotes();
 
-  scanButton.disabled =
-    true;
-
-  scanButton.innerText =
-    "SCANNING...";
-
-  manualButton.style.display =
-    "none";
-
-  scanIndicator.style.display =
+  scanLine.style.display =
     "block";
 
-  attemptInfo.innerText =
-    "Starting smart scan...";
+  resultBox.style.display =
+    "none";
 
-  try {
+  confirmButton.style.display =
+    "none";
 
-    await prepareOCR();
+  retryButton.style.display =
+    "none";
+
+  manualButton.style.display =
+    "block";
+
+  statusBox.innerText =
+    "Scanning automatically...";
+
+  smallStatus.innerText =
+    "Align all 17 characters inside the green box.";
+
+  automaticLoop();
+
+}
+
+
+/* ==================================================
+   SCAN LOOP
+================================================== */
+
+async function automaticLoop() {
+
+  while (
+    scanning &&
+    scanRound < MAX_ROUNDS
+  ) {
+
+    scanRound++;
+
+
+    smallStatus.innerText =
+      "Reading VIN • pass " +
+      scanRound;
+
+
+    const source =
+      captureROI();
+
+
+    /*
+      IMPORTANT:
+      We process the SAME physical line
+      several ways, but NEVER combine
+      text from different OCR lines.
+    */
+
+    const modes = [
+      "contrast",
+      "threshold",
+      "inverted"
+    ];
+
 
     for (
-      let round = 1;
-      round <= MAX_ROUNDS;
-      round++
+      const mode of modes
     ) {
 
       if (!scanning) {
-        break;
+        return;
       }
 
-      attemptInfo.innerText =
-        "Scan pass " +
-        round +
-        " of " +
-        MAX_ROUNDS;
 
-      statusBox.innerText =
-        "Hold steady — looking for all 17 characters...";
-
-      const source =
-        captureVINArea();
-
-      const variants = [
-        createVariant(
+      const image =
+        preprocess(
           source,
-          "contrast"
-        ),
-
-        createVariant(
-          source,
-          "thresholdLight"
-        ),
-
-        createVariant(
-          source,
-          "thresholdDark"
-        )
-      ];
-
-      for (
-        let variantIndex = 0;
-        variantIndex < variants.length;
-        variantIndex++
-      ) {
-
-        if (!scanning) {
-          break;
-        }
-
-        const result =
-          await worker.recognize(
-            variants[variantIndex]
-          );
-
-        const text =
-          String(
-            result.data.text || ""
-          ).toUpperCase();
-
-        console.log(
-          "ROUND",
-          round,
-          "VARIANT",
-          variantIndex,
-          text
+          mode
         );
 
-        const candidates =
-          findVINCandidates(text);
 
-        for (
-          const candidate of candidates
+      const result =
+        await worker.recognize(
+          image
+        );
+
+
+      const rawText =
+        String(
+          result.data.text || ""
+        );
+
+
+      console.log(
+        "OCR",
+        scanRound,
+        mode,
+        rawText
+      );
+
+
+      const candidates =
+        extractCandidates(
+          rawText
+        );
+
+
+      for (
+        const vin of candidates
+      ) {
+
+        addVote(vin);
+
+
+        /*
+          As soon as OCR sees the exact same
+          candidate twice, verify it.
+        */
+
+        if (
+          votes[vin] >= 2
         ) {
 
-          registerCandidate(
-            candidate
-          );
+          statusBox.innerText =
+            "Checking VIN...";
 
-          if (
-            candidateVotes[candidate] >=
-            REQUIRED_VOTES
-          ) {
 
-            await acceptVIN(
-              candidate
+          const vehicle =
+            await verifyWithNHTSA(
+              vin
+            );
+
+
+          if (vehicle) {
+
+            lockVIN(
+              vin,
+              vehicle
             );
 
             return;
@@ -821,63 +837,36 @@ async function startSmartScan() {
 
       }
 
-      await sleep(300);
-
     }
 
-    const best =
-      getBestCandidate();
 
-    if (best) {
+    /*
+      Small delay lets autofocus update
+      before the next frame.
+    */
 
-      await acceptVIN(best);
+    await sleep(180);
 
-      return;
+  }
 
-    }
 
-    scanning =
-      false;
+  if (scanning) {
 
-    scanIndicator.style.display =
+    scanning = false;
+
+    scanLine.style.display =
       "none";
 
-    statusBox.innerText =
-      "VIN not detected clearly. Move closer, reduce glare and try again.";
-
-    attemptInfo.innerText =
-      "Make sure all 17 characters are visible.";
-
-    scanButton.disabled =
-      false;
-
-    scanButton.innerText =
-      "SCAN AGAIN";
-
-    manualButton.style.display =
-      "block";
-
-  } catch (error) {
-
-    console.error(error);
-
-    scanning =
-      false;
-
-    scanIndicator.style.display =
-      "none";
 
     statusBox.innerText =
-      "SCAN ERROR: " +
-      error.message;
+      "Couldn't read the VIN clearly.";
 
-    scanButton.disabled =
-      false;
 
-    scanButton.innerText =
-      "SCAN AGAIN";
+    smallStatus.innerText =
+      "Move closer, center one VIN and tap Scan Again.";
 
-    manualButton.style.display =
+
+    retryButton.style.display =
       "block";
 
   }
@@ -885,69 +874,77 @@ async function startSmartScan() {
 }
 
 
-/* =========================================
-   CAPTURE VIN AREA
-========================================= */
+/* ==================================================
+   CAPTURE ONLY GREEN BOX
+================================================== */
 
-function captureVINArea() {
+function captureROI() {
 
-  const width =
+  const videoWidth =
     video.videoWidth;
 
-  const height =
+  const videoHeight =
     video.videoHeight;
 
+
   /*
-    Capture slightly more than the visible
-    green guide to tolerate phone positioning.
+    The visible guide is approximately
+    top 42% → 58%.
+
+    We intentionally capture ONLY that
+    horizontal strip.
   */
 
   const cropX =
     Math.floor(
-      width * 0.02
+      videoWidth * 0.03
     );
 
   const cropY =
     Math.floor(
-      height * 0.35
+      videoHeight * 0.42
     );
 
   const cropWidth =
     Math.floor(
-      width * 0.96
+      videoWidth * 0.94
     );
 
   const cropHeight =
     Math.floor(
-      height * 0.25
+      videoHeight * 0.16
     );
 
+
   /*
-    Upscaling helps OCR recognize
-    smaller VIN characters.
+    Upscale OCR input.
   */
 
-  const scale = 2;
+  const SCALE = 2;
 
-  canvas.width =
-    cropWidth * scale;
 
-  canvas.height =
-    cropHeight * scale;
+  captureCanvas.width =
+    cropWidth * SCALE;
+
+  captureCanvas.height =
+    cropHeight * SCALE;
+
 
   const ctx =
-    canvas.getContext(
+    captureCanvas.getContext(
       "2d",
       {
         willReadFrequently: true
       }
     );
 
+
   ctx.imageSmoothingEnabled =
     true;
 
   ctx.imageSmoothingQuality =
     "high";
+
 
   ctx.drawImage(
 
@@ -962,38 +959,41 @@ function captureVINArea() {
     0,
     0,
 
-    canvas.width,
-    canvas.height
+    captureCanvas.width,
+    captureCanvas.height
 
   );
 
-  return canvas;
+
+  return captureCanvas;
 
 }
 
 
-/* =========================================
-   IMAGE VARIANTS
-========================================= */
+/* ==================================================
+   IMAGE PROCESSING
+================================================== */
 
-function createVariant(
+function preprocess(
   source,
   mode
 ) {
 
-  processedCanvas.width =
+  processCanvas.width =
     source.width;
 
-  processedCanvas.height =
+  processCanvas.height =
     source.height;
 
+
   const ctx =
-    processedCanvas.getContext(
+    processCanvas.getContext(
       "2d",
       {
         willReadFrequently: true
       }
     );
+
 
   ctx.drawImage(
     source,
@@ -1001,16 +1001,19 @@ function createVariant(
     0
   );
 
+
   const image =
     ctx.getImageData(
       0,
       0,
-      processedCanvas.width,
-      processedCanvas.height
+      processCanvas.width,
+      processCanvas.height
     );
+
 
   const data =
     image.data;
+
 
   for (
     let i = 0;
@@ -1018,48 +1021,47 @@ function createVariant(
     i += 4
   ) {
 
-    let gray =
+    const gray =
+
       0.299 * data[i] +
+
       0.587 * data[i + 1] +
+
       0.114 * data[i + 2];
+
 
     let value;
 
+
     if (
-      mode ===
-      "thresholdLight"
+      mode === "threshold"
     ) {
 
       value =
-        gray > 165
+        gray > 145
           ? 255
           : 0;
 
     }
 
     else if (
-      mode ===
-      "thresholdDark"
+      mode === "inverted"
     ) {
 
       value =
-        gray > 110
-          ? 255
-          : 0;
+        gray > 145
+          ? 0
+          : 255;
 
     }
 
     else {
 
-      /*
-        Strong contrast without
-        completely destroying edges.
-      */
-
       value =
         (gray - 128) *
-        1.8 +
+        1.9 +
         128;
+
 
       value =
         Math.max(
@@ -1072,6 +1074,7 @@ function createVariant(
 
     }
 
+
     data[i] =
       value;
 
@@ -1083,15 +1086,16 @@ function createVariant(
 
   }
 
+
   ctx.putImageData(
     image,
     0,
     0
   );
 
+
   /*
-    Copy this processed frame because
-    the same canvas is reused.
+    Return an independent canvas.
   */
 
   const output =
@@ -1099,182 +1103,245 @@ function createVariant(
       "canvas"
     );
 
+
   output.width =
-    processedCanvas.width;
+    processCanvas.width;
 
   output.height =
-    processedCanvas.height;
+    processCanvas.height;
+
 
   output
     .getContext("2d")
     .drawImage(
-      processedCanvas,
+      processCanvas,
       0,
       0
     );
+
 
   return output;
 
 }
 
 
-/* =========================================
-   VIN EXTRACTION
-========================================= */
+/* ==================================================
+   EXTRACT VIN
+================================================== */
 
-function findVINCandidates(text) {
+function extractCandidates(rawText) {
 
-  const results =
+  const candidates =
     new Set();
 
+
+  /*
+    NEVER merge all OCR lines.
+
+    This fixes the exact problem where:
+    "storage 175$"
+    +
+    another VIN
+    became one fake 17-char result.
+  */
+
   const lines =
-    String(text)
+    String(rawText)
       .toUpperCase()
       .split(/\r?\n/);
 
+
   for (
-    const line of lines
+    let line of lines
   ) {
 
-    processVINString(
-      line,
-      results
-    );
-
-  }
-
-  processVINString(
-    text,
-    results
-  );
-
-  return Array.from(
-    results
-  );
-
-}
+    line =
+      line.trim();
 
 
-function processVINString(
-  text,
-  results
-) {
+    if (!line) {
+      continue;
+    }
 
-  let clean =
-    String(text)
-      .toUpperCase()
-      .replace(
+
+    let clean =
+      line.replace(
         /[^A-Z0-9]/g,
         ""
       );
 
-  /*
-    VINs never contain I, O or Q.
-    OCR commonly mistakes these for
-    1 and 0.
-  */
 
-  clean =
-    clean
-      .replace(/O/g, "0")
-      .replace(/Q/g, "0")
-      .replace(/I/g, "1");
+    /*
+      VIN cannot contain I, O or Q.
 
-  if (
-    clean.length < 17
-  ) {
-    return;
-  }
+      These are common OCR mistakes.
+    */
 
-  /*
-    OCR may include extra text around VIN.
-    Test every 17-character window.
-  */
+    clean =
+      clean
+        .replace(/O/g, "0")
+        .replace(/Q/g, "0")
+        .replace(/I/g, "1");
 
-  for (
-    let i = 0;
-    i <= clean.length - 17;
-    i++
-  ) {
 
-    const candidate =
-      clean.substring(
-        i,
-        i + 17
-      );
+    /*
+      Important:
+      reject long lines instead of taking
+      arbitrary windows from lots of text.
+    */
 
     if (
-      isVINFormat(candidate)
+      clean.length < 17 ||
+      clean.length > 20
     ) {
 
-      results.add(
-        candidate
-      );
+      continue;
+
+    }
+
+
+    if (
+      clean.length === 17
+    ) {
+
+      if (
+        basicVINCheck(clean)
+      ) {
+
+        candidates.add(
+          clean
+        );
+
+      }
+
+      continue;
+
+    }
+
+
+    /*
+      OCR sometimes adds 1–3 characters
+      around the VIN.
+
+      Only in that small case do we test
+      17-character windows.
+    */
+
+    for (
+      let i = 0;
+      i <= clean.length - 17;
+      i++
+    ) {
+
+      const possible =
+        clean.substring(
+          i,
+          i + 17
+        );
+
+
+      if (
+        basicVINCheck(
+          possible
+        )
+      ) {
+
+        candidates.add(
+          possible
+        );
+
+      }
 
     }
 
   }
 
+
+  return Array.from(
+    candidates
+  );
+
 }
 
 
-/* =========================================
-   VIN VALIDATION
-========================================= */
+/* ==================================================
+   BASIC VIN VALIDATION
+================================================== */
 
-function isVINFormat(vin) {
+function basicVINCheck(vin) {
 
   if (
     !/^[A-HJ-NPR-Z0-9]{17}$/.test(
       vin
     )
   ) {
+
     return false;
+
   }
 
-  /*
-    Reject obviously bad OCR output
-    containing almost no variation.
-  */
 
-  const unique =
+  const uniqueChars =
     new Set(
       vin.split("")
     );
 
+
   if (
-    unique.size < 5
+    uniqueChars.size < 6
   ) {
+
     return false;
+
   }
+
+
+  /*
+    Position 10 is model-year code.
+    This removes many random OCR strings.
+  */
+
+  const yearCode =
+    vin.charAt(9);
+
+
+  if (
+    !/^[A-HJ-NPR-TV-Y1-9]$/.test(
+      yearCode
+    )
+  ) {
+
+    return false;
+
+  }
+
 
   return true;
 
 }
 
 
-/* =========================================
-   MULTI-FRAME VOTING
-========================================= */
+/* ==================================================
+   VOTING
+================================================== */
 
-function registerCandidate(vin) {
+function addVote(vin) {
 
-  if (
-    !candidateVotes[vin]
-  ) {
+  if (!votes[vin]) {
 
-    candidateVotes[vin] =
-      0;
+    votes[vin] = 0;
 
   }
 
-  candidateVotes[vin]++;
+
+  votes[vin]++;
+
 
   console.log(
-    "VIN CANDIDATE:",
+    "VIN candidate:",
     vin,
-    "VOTES:",
-    candidateVotes[vin]
+    "votes:",
+    votes[vin]
   );
 
 }
@@ -1283,109 +1350,23 @@ function registerCandidate(vin) {
 function clearVotes() {
 
   for (
-    const key in candidateVotes
+    const vin in votes
   ) {
 
-    delete candidateVotes[key];
+    delete votes[vin];
 
   }
 
 }
 
 
-function getBestCandidate() {
+/* ==================================================
+   NHTSA VERIFICATION
+================================================== */
 
-  let bestVIN =
-    null;
-
-  let bestVotes =
-    0;
-
-  for (
-    const vin in candidateVotes
-  ) {
-
-    if (
-      candidateVotes[vin] >
-      bestVotes
-    ) {
-
-      bestVIN =
-        vin;
-
-      bestVotes =
-        candidateVotes[vin];
-
-    }
-
-  }
-
-  /*
-    Only use fallback candidate when
-    OCR produced something plausible.
-  */
-
-  if (
-    bestVotes >= 1
-  ) {
-
-    return bestVIN;
-
-  }
-
-  return null;
-
-}
-
-
-/* =========================================
-   VIN ACCEPTED
-========================================= */
-
-async function acceptVIN(vin) {
-
-  scanning =
-    false;
-
-  scanIndicator.style.display =
-    "none";
-
-  detectedVIN =
-    vin;
-
-  vinResult.innerText =
-    vin;
-
-  resultBox.style.display =
-    "block";
-
-  scanButton.style.display =
-    "none";
-
-  manualButton.style.display =
-    "none";
-
-  manualBox.style.display =
-    "none";
-
-  attemptInfo.innerText =
-    "";
-
-  statusBox.innerText =
-    "VIN detected. Getting vehicle information...";
-
-  await decodeVIN(
-    vin
-  );
-
-}
-
-
-/* =========================================
-   NHTSA DECODER
-========================================= */
-
-async function decodeVIN(vin) {
+async function verifyWithNHTSA(
+  vin
+) {
 
   try {
 
@@ -1397,100 +1378,238 @@ async function decodeVIN(vin) {
 
       "?format=json";
 
+
     const response =
       await fetch(url);
 
+
     if (!response.ok) {
 
-      throw new Error(
-        "VIN decoder did not respond."
-      );
+      return null;
 
     }
+
 
     const data =
       await response.json();
 
+
     if (
       !data.Results ||
-      data.Results.length === 0
+      !data.Results.length
     ) {
 
-      throw new Error(
-        "Vehicle information not found."
-      );
+      return null;
 
     }
+
 
     const vehicle =
       data.Results[0];
 
-    detectedYear =
-      vehicle.ModelYear || "";
 
-    detectedMake =
-      vehicle.Make || "";
+    /*
+      A random 17-character string may still
+      receive a response.
 
-    detectedModel =
-      vehicle.Model || "";
+      We require meaningful vehicle data.
+    */
 
-    const vehicleName =
-      [
-        detectedYear,
-        detectedMake,
-        detectedModel
-      ]
-      .filter(Boolean)
-      .join(" ");
+    const year =
+      String(
+        vehicle.ModelYear || ""
+      ).trim();
 
-    vehicleResult.innerText =
-      vehicleName ||
-      "Vehicle details unavailable";
 
-    statusBox.innerText =
-      "Check VIN and vehicle details, then confirm.";
+    const make =
+      String(
+        vehicle.Make || ""
+      ).trim();
 
-    confirmButton.style.display =
-      "block";
 
-    retryButton.style.display =
-      "block";
+    if (
+      !year ||
+      !make
+    ) {
 
-  } catch (error) {
+      return null;
 
-    console.error(error);
+    }
 
-    statusBox.innerText =
-      "VIN detected, but vehicle details could not be decoded.";
 
-    vehicleResult.innerText =
-      "VIN: " +
-      detectedVIN;
+    return {
 
-    confirmButton.style.display =
-      "block";
+      year:
+        year,
 
-    retryButton.style.display =
-      "block";
+      make:
+        make,
+
+      model:
+        String(
+          vehicle.Model || ""
+        ).trim()
+
+    };
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "NHTSA verification failed:",
+      error
+    );
+
+
+    return null;
 
   }
 
 }
 
 
-/* =========================================
-   MANUAL VIN
-========================================= */
+/* ==================================================
+   LOCK VIN
+================================================== */
+
+function lockVIN(
+  vin,
+  vehicle
+) {
+
+  scanning = false;
+
+
+  detectedVIN =
+    vin;
+
+
+  detectedYear =
+    vehicle.year;
+
+
+  detectedMake =
+    vehicle.make;
+
+
+  detectedModel =
+    vehicle.model;
+
+
+  scanLine.style.display =
+    "none";
+
+
+  vinResult.innerText =
+    detectedVIN;
+
+
+  vehicleResult.innerText =
+    [
+      detectedYear,
+      detectedMake,
+      detectedModel
+    ]
+    .filter(Boolean)
+    .join(" ");
+
+
+  resultBox.style.display =
+    "block";
+
+
+  statusBox.innerText =
+    "VIN confirmed.";
+
+
+  smallStatus.innerText =
+    "Vehicle successfully identified.";
+
+
+  confirmButton.style.display =
+    "block";
+
+
+  retryButton.style.display =
+    "block";
+
+
+  manualButton.style.display =
+    "none";
+
+
+  manualBox.style.display =
+    "none";
+
+}
+
+
+/* ==================================================
+   RETRY
+================================================== */
+
+retryButton.addEventListener(
+  "click",
+  function() {
+
+    scanning = false;
+
+    detectedVIN = "";
+
+    detectedYear = "";
+
+    detectedMake = "";
+
+    detectedModel = "";
+
+
+    vinResult.innerText = "";
+
+    vehicleResult.innerText = "";
+
+
+    resultBox.style.display =
+      "none";
+
+
+    confirmButton.style.display =
+      "none";
+
+
+    retryButton.style.display =
+      "none";
+
+
+    manualBox.style.display =
+      "none";
+
+
+    manualVIN.value = "";
+
+
+    setTimeout(
+      beginAutomaticScanning,
+      200
+    );
+
+  }
+);
+
+
+/* ==================================================
+   MANUAL ENTRY
+================================================== */
 
 manualButton.addEventListener(
   "click",
   function() {
 
     manualBox.style.display =
-      manualBox.style.display ===
-      "block"
+      manualBox.style.display === "block"
         ? "none"
         : "block";
+
 
     manualVIN.focus();
 
@@ -1527,44 +1646,64 @@ manualSubmit.addEventListener(
         .trim()
         .toUpperCase();
 
+
     if (
-      !isVINFormat(vin)
+      !basicVINCheck(vin)
     ) {
 
       statusBox.innerText =
-        "Please enter a valid 17-character VIN.";
+        "Enter a valid 17-character VIN.";
 
       return;
 
     }
 
-    await acceptVIN(
-      vin
+
+    statusBox.innerText =
+      "Checking VIN...";
+
+
+    const vehicle =
+      await verifyWithNHTSA(
+        vin
+      );
+
+
+    if (!vehicle) {
+
+      statusBox.innerText =
+        "VIN could not be verified.";
+
+      return;
+
+    }
+
+
+    lockVIN(
+      vin,
+      vehicle
     );
 
   }
 );
 
 
-/* =========================================
+/* ==================================================
    CONFIRM → APPSHEET
-========================================= */
+================================================== */
 
 confirmButton.addEventListener(
   "click",
   function() {
 
     if (!detectedVIN) {
-
-      statusBox.innerText =
-        "No VIN detected.";
-
       return;
-
     }
 
+
     statusBox.innerText =
-      "Opening vehicle receiving form...";
+      "Opening receiving form...";
+
 
     const defaults = {
 
@@ -1581,6 +1720,7 @@ confirmButton.addEventListener(
         detectedModel
 
     };
+
 
     const appUrl =
 
@@ -1604,6 +1744,7 @@ confirmButton.addEventListener(
 
       "&page=form";
 
+
     window.location.href =
       appUrl;
 
@@ -1611,80 +1752,9 @@ confirmButton.addEventListener(
 );
 
 
-/* =========================================
-   RETRY
-========================================= */
-
-retryButton.addEventListener(
-  "click",
-  function() {
-
-    scanning =
-      false;
-
-    detectedVIN =
-      "";
-
-    detectedYear =
-      "";
-
-    detectedMake =
-      "";
-
-    detectedModel =
-      "";
-
-    clearVotes();
-
-    vinResult.innerText =
-      "";
-
-    vehicleResult.innerText =
-      "";
-
-    resultBox.style.display =
-      "none";
-
-    confirmButton.style.display =
-      "none";
-
-    retryButton.style.display =
-      "none";
-
-    manualBox.style.display =
-      "none";
-
-    manualVIN.value =
-      "";
-
-    scanIndicator.style.display =
-      "none";
-
-    scanButton.style.display =
-      "block";
-
-    scanButton.disabled =
-      false;
-
-    scanButton.innerText =
-      "SCAN VIN";
-
-    manualButton.style.display =
-      "block";
-
-    attemptInfo.innerText =
-      "";
-
-    statusBox.innerText =
-      "Align the full VIN inside the green box.";
-
-  }
-);
-
-
-/* =========================================
-   HELPER
-========================================= */
+/* ==================================================
+   HELPERS
+================================================== */
 
 function sleep(ms) {
 
@@ -1699,9 +1769,9 @@ function sleep(ms) {
 }
 
 
-/* =========================================
+/* ==================================================
    START
-========================================= */
+================================================== */
 
 window.addEventListener(
   "load",

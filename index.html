@@ -2,21 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<title>A-to-Z VIN Scanner</title>
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+<title>A-to-Z VIN Scanner V4</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-* { box-sizing: border-box; }
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
   padding: 14px;
+
   background: #0b0d10;
   color: white;
+
   font-family: Arial, sans-serif;
   text-align: center;
 }
@@ -27,16 +34,20 @@ h1 {
 }
 
 .subtitle {
-  color: #aaa;
   margin-bottom: 12px;
+  color: #aaa;
 }
 
 #cameraBox {
   position: relative;
+
   width: 100%;
   max-width: 700px;
+
   margin: auto;
+
   background: black;
+
   overflow: hidden;
   border-radius: 14px;
 }
@@ -49,60 +60,72 @@ video {
 #shadeTop,
 #shadeBottom {
   position: absolute;
+
   left: 0;
   right: 0;
-  background: rgba(0,0,0,.38);
+
+  background: rgba(0,0,0,.42);
+
   pointer-events: none;
 }
 
 #shadeTop {
   top: 0;
-  height: 42%;
+  height: 43%;
 }
 
 #shadeBottom {
   bottom: 0;
-  height: 42%;
+  height: 45%;
 }
 
 #vinGuide {
   position: absolute;
+
   left: 3%;
   right: 3%;
-  top: 42%;
-  height: 16%;
 
-  min-height: 62px;
+  top: 43%;
+  height: 12%;
+
+  min-height: 55px;
 
   border: 3px solid #00ff88;
   border-radius: 9px;
 
   box-shadow:
-    0 0 12px rgba(0,255,136,.7);
+    0 0 14px rgba(0,255,136,.65);
 
   pointer-events: none;
 }
 
 #guideText {
   position: absolute;
+
   left: 0;
   right: 0;
-  top: calc(42% - 30px);
+
+  top: calc(43% - 30px);
 
   color: #00ff88;
+
   font-size: 13px;
   font-weight: bold;
 
   text-shadow: 0 1px 4px black;
+
+  pointer-events: none;
 }
 
 #scanLine {
   display: none;
 
   position: absolute;
+
   left: 4%;
   right: 4%;
-  top: 43%;
+
+  top: 44%;
 
   height: 2px;
 
@@ -111,35 +134,43 @@ video {
   box-shadow:
     0 0 10px #00ff88;
 
-  animation: scanning 1s infinite alternate ease-in-out;
+  animation:
+    scannerMove .85s infinite alternate ease-in-out;
 }
 
-@keyframes scanning {
+@keyframes scannerMove {
+
   from {
-    transform: translateY(3px);
+    transform: translateY(2px);
   }
 
   to {
-    transform: translateY(55px);
+    transform: translateY(43px);
   }
+
 }
 
 #status {
   max-width: 700px;
+
   margin: 14px auto 5px;
+
   min-height: 24px;
 
   font-size: 16px;
+
   color: #ddd;
 }
 
 #smallStatus {
   max-width: 700px;
+
   margin: 5px auto 12px;
 
   min-height: 18px;
 
   font-size: 13px;
+
   color: #888;
 }
 
@@ -149,18 +180,21 @@ video {
   max-width: 700px;
 
   margin: 14px auto;
+
   padding: 18px;
 
   border-radius: 12px;
 
   background: #1a1d21;
+
   border: 1px solid #333;
 }
 
 .success {
   color: #00ff88;
-  font-weight: bold;
+
   font-size: 14px;
+  font-weight: bold;
 }
 
 #vinResult {
@@ -169,7 +203,8 @@ video {
   font-size: 23px;
   font-weight: bold;
 
-  letter-spacing: 1.4px;
+  letter-spacing: 1.3px;
+
   word-break: break-all;
 }
 
@@ -177,6 +212,7 @@ video {
   margin-top: 12px;
 
   font-size: 19px;
+
   color: #00ff88;
 }
 
@@ -185,6 +221,7 @@ button {
   max-width: 700px;
 
   margin-top: 10px;
+
   padding: 16px;
 
   border: 0;
@@ -198,19 +235,25 @@ button {
 
 #confirmButton {
   display: none;
+
   background: #00b86b;
+
   color: white;
 }
 
 #retryButton {
   display: none;
+
   background: #333;
+
   color: white;
 }
 
 #manualButton {
   background: transparent;
+
   color: #aaa;
+
   border: 1px solid #444;
 }
 
@@ -220,6 +263,7 @@ button {
   max-width: 700px;
 
   margin: 12px auto;
+
   padding: 14px;
 
   border-radius: 10px;
@@ -229,6 +273,7 @@ button {
 
 #manualVIN {
   width: 100%;
+
   padding: 14px;
 
   background: #0d0f12;
@@ -238,6 +283,7 @@ button {
   border-radius: 8px;
 
   font-size: 18px;
+
   letter-spacing: 1px;
 
   text-transform: uppercase;
@@ -251,15 +297,17 @@ button {
 canvas {
   display: none;
 }
+
 </style>
 </head>
 
 <body>
 
+
 <h1>A-to-Z Yard</h1>
 
 <div class="subtitle">
-  Automatic VIN Scanner
+  VIN Scanner V4
 </div>
 
 
@@ -273,10 +321,11 @@ canvas {
   </video>
 
   <div id="shadeTop"></div>
+
   <div id="shadeBottom"></div>
 
   <div id="guideText">
-    PLACE ONLY ONE VIN INSIDE THE BOX
+    ALIGN ONLY THE 17-CHARACTER VIN
   </div>
 
   <div id="vinGuide"></div>
@@ -291,14 +340,14 @@ canvas {
 </div>
 
 <div id="smallStatus">
-  No button needed — scanning starts automatically.
+  Scanning starts automatically.
 </div>
 
 
 <div id="result">
 
   <div class="success">
-    ✓ VIN FOUND
+    ✓ VIN VERIFIED
   </div>
 
   <div id="vinResult"></div>
@@ -312,9 +361,11 @@ canvas {
   CONFIRM & CONTINUE
 </button>
 
+
 <button id="retryButton">
   SCAN AGAIN
 </button>
+
 
 <button id="manualButton">
   ENTER VIN MANUALLY
@@ -331,21 +382,20 @@ canvas {
     placeholder="17-CHARACTER VIN">
 
   <button id="manualSubmit">
-    USE VIN
+    CHECK VIN
   </button>
 
 </div>
 
 
 <canvas id="captureCanvas"></canvas>
-<canvas id="processCanvas"></canvas>
 
 
 <script>
 
-/* ==================================================
-   APPSHEET SETTINGS
-================================================== */
+/* =====================================================
+   APPSHEET
+===================================================== */
 
 const APP_ID =
   "c9b42286-9e3c-4647-a376-6b7823b93237";
@@ -354,18 +404,15 @@ const FORM_VIEW =
   "A-to-Z Yard Inventory V1_Form";
 
 
-/* ==================================================
+/* =====================================================
    ELEMENTS
-================================================== */
+===================================================== */
 
 const video =
   document.getElementById("video");
 
 const captureCanvas =
   document.getElementById("captureCanvas");
-
-const processCanvas =
-  document.getElementById("processCanvas");
 
 const statusBox =
   document.getElementById("status");
@@ -404,15 +451,17 @@ const manualSubmit =
   document.getElementById("manualSubmit");
 
 
-/* ==================================================
+/* =====================================================
    STATE
-================================================== */
+===================================================== */
 
 let stream = null;
 
 let worker = null;
 
 let scanning = false;
+
+let verifying = false;
 
 let detectedVIN = "";
 
@@ -422,16 +471,17 @@ let detectedMake = "";
 
 let detectedModel = "";
 
-let scanRound = 0;
+let scanPass = 0;
 
-const votes = {};
+const checkedCandidates =
+  new Set();
 
-const MAX_ROUNDS = 10;
+const MAX_PASSES = 12;
 
 
-/* ==================================================
-   START CAMERA
-================================================== */
+/* =====================================================
+   CAMERA
+===================================================== */
 
 async function startCamera() {
 
@@ -440,13 +490,14 @@ async function startCamera() {
     statusBox.innerText =
       "Opening rear camera...";
 
+
     if (
       !navigator.mediaDevices ||
       !navigator.mediaDevices.getUserMedia
     ) {
 
       throw new Error(
-        "Camera is not supported."
+        "Camera is not supported by this browser."
       );
 
     }
@@ -479,20 +530,27 @@ async function startCamera() {
     video.srcObject =
       stream;
 
+
     await video.play();
+
 
     await waitForVideo();
 
+
     await configureCamera();
 
+
     statusBox.innerText =
-      "Preparing VIN reader...";
+      "Loading VIN reader...";
+
 
     await prepareOCR();
 
-    await sleep(300);
 
-    beginAutomaticScanning();
+    await sleep(250);
+
+
+    startAutomaticScan();
 
   }
 
@@ -500,34 +558,38 @@ async function startCamera() {
 
     console.error(error);
 
+
     statusBox.innerText =
       "Camera error: " +
       error.message;
 
+
     smallStatus.innerText =
-      "You can enter the VIN manually below.";
+      "Use manual VIN entry below.";
 
   }
 
 }
 
 
-/* ==================================================
-   WAIT FOR CAMERA
-================================================== */
+/* =====================================================
+   WAIT FOR VIDEO
+===================================================== */
 
 function waitForVideo() {
 
   return new Promise(
     function(resolve, reject) {
 
-      let tries = 0;
+      let attempts = 0;
+
 
       const timer =
         setInterval(
           function() {
 
-            tries++;
+            attempts++;
+
 
             if (
               video.videoWidth > 0 &&
@@ -535,23 +597,29 @@ function waitForVideo() {
             ) {
 
               clearInterval(timer);
+
               resolve();
 
             }
 
-            if (tries > 80) {
+
+            if (
+              attempts > 80
+            ) {
 
               clearInterval(timer);
 
+
               reject(
                 new Error(
-                  "Camera video did not start."
+                  "Camera did not start."
                 )
               );
 
             }
 
           },
+
           100
         );
 
@@ -561,9 +629,9 @@ function waitForVideo() {
 }
 
 
-/* ==================================================
-   CAMERA AUTOFOCUS
-================================================== */
+/* =====================================================
+   CAMERA CONFIG
+===================================================== */
 
 async function configureCamera() {
 
@@ -572,9 +640,11 @@ async function configureCamera() {
     const track =
       stream.getVideoTracks()[0];
 
+
     if (!track) {
       return;
     }
+
 
     const capabilities =
       track.getCapabilities
@@ -627,7 +697,9 @@ async function configureCamera() {
     }
 
 
-    if (advanced.length) {
+    if (
+      advanced.length
+    ) {
 
       await track.applyConstraints({
         advanced: advanced
@@ -640,7 +712,7 @@ async function configureCamera() {
   catch (error) {
 
     console.log(
-      "Advanced camera settings unavailable.",
+      "Advanced camera controls unavailable.",
       error
     );
 
@@ -649,9 +721,9 @@ async function configureCamera() {
 }
 
 
-/* ==================================================
-   OCR WORKER
-================================================== */
+/* =====================================================
+   OCR
+===================================================== */
 
 async function prepareOCR() {
 
@@ -672,90 +744,143 @@ async function prepareOCR() {
       "ABCDEFGHJKLMNPRSTUVWXYZ0123456789",
 
     tessedit_pageseg_mode:
-      "7"
+      "7",
+
+    preserve_interword_spaces:
+      "0"
 
   });
 
 }
 
 
-/* ==================================================
-   AUTOMATIC SCANNING
-================================================== */
+/* =====================================================
+   BEGIN SCAN
+===================================================== */
 
-function beginAutomaticScanning() {
+function startAutomaticScan() {
 
   scanning = true;
 
-  scanRound = 0;
+  verifying = false;
 
-  clearVotes();
+  scanPass = 0;
 
-  scanLine.style.display =
-    "block";
+
+  checkedCandidates.clear();
+
+
+  detectedVIN = "";
+
+  detectedYear = "";
+
+  detectedMake = "";
+
+  detectedModel = "";
+
 
   resultBox.style.display =
     "none";
 
+
   confirmButton.style.display =
     "none";
+
 
   retryButton.style.display =
     "none";
 
+
+  manualBox.style.display =
+    "none";
+
+
   manualButton.style.display =
     "block";
 
+
+  scanLine.style.display =
+    "block";
+
+
   statusBox.innerText =
-    "Scanning automatically...";
+    "Scanning VIN...";
+
 
   smallStatus.innerText =
-    "Align all 17 characters inside the green box.";
+    "Keep all 17 characters centered in the green box.";
 
-  automaticLoop();
+
+  runScanLoop();
 
 }
 
 
-/* ==================================================
+/* =====================================================
    SCAN LOOP
-================================================== */
+===================================================== */
 
-async function automaticLoop() {
+async function runScanLoop() {
 
   while (
     scanning &&
-    scanRound < MAX_ROUNDS
+    scanPass < MAX_PASSES
   ) {
 
-    scanRound++;
+    scanPass++;
 
 
     smallStatus.innerText =
       "Reading VIN • pass " +
-      scanRound;
-
-
-    const source =
-      captureROI();
+      scanPass;
 
 
     /*
-      IMPORTANT:
-      We process the SAME physical line
-      several ways, but NEVER combine
-      text from different OCR lines.
+      Capture a fresh frame on every pass.
     */
 
-    const modes = [
-      "contrast",
-      "threshold",
-      "inverted"
+    const frame =
+      captureVINStrip();
+
+
+    /*
+      V4:
+      Try several OCR-friendly versions of
+      the SAME tight VIN strip.
+    */
+
+    const variants = [
+
+      makeVariant(
+        frame,
+        "normal"
+      ),
+
+      makeVariant(
+        frame,
+        "contrast"
+      ),
+
+      makeVariant(
+        frame,
+        "threshold130"
+      ),
+
+      makeVariant(
+        frame,
+        "threshold160"
+      ),
+
+      makeVariant(
+        frame,
+        "invert"
+      )
+
     ];
 
 
     for (
-      const mode of modes
+      const image of variants
     ) {
 
       if (!scanning) {
@@ -763,29 +888,39 @@ async function automaticLoop() {
       }
 
 
-      const image =
-        preprocess(
-          source,
-          mode
-        );
+      let result;
 
 
-      const result =
-        await worker.recognize(
-          image
+      try {
+
+        result =
+          await worker.recognize(
+            image
+          );
+
+      }
+
+      catch (error) {
+
+        console.log(
+          "OCR pass error:",
+          error
         );
+
+        continue;
+
+      }
 
 
       const rawText =
         String(
           result.data.text || ""
-        );
+        )
+        .toUpperCase();
 
 
       console.log(
-        "OCR",
-        scanRound,
-        mode,
+        "OCR V4:",
         rawText
       );
 
@@ -796,44 +931,76 @@ async function automaticLoop() {
         );
 
 
+      console.log(
+        "Candidates:",
+        candidates
+      );
+
+
       for (
-        const vin of candidates
+        const candidate of candidates
       ) {
 
-        addVote(vin);
+        if (!scanning) {
+          return;
+        }
 
 
         /*
-          As soon as OCR sees the exact same
-          candidate twice, verify it.
+          Do not waste network calls checking
+          the same candidate repeatedly.
         */
 
         if (
-          votes[vin] >= 2
+          checkedCandidates.has(
+            candidate
+          )
         ) {
 
-          statusBox.innerText =
-            "Checking VIN...";
-
-
-          const vehicle =
-            await verifyWithNHTSA(
-              vin
-            );
-
-
-          if (vehicle) {
-
-            lockVIN(
-              vin,
-              vehicle
-            );
-
-            return;
-
-          }
+          continue;
 
         }
+
+
+        checkedCandidates.add(
+          candidate
+        );
+
+
+        statusBox.innerText =
+          "Checking " +
+          candidate +
+          "...";
+
+
+        verifying = true;
+
+
+        const vehicle =
+          await verifyVIN(
+            candidate
+          );
+
+
+        verifying = false;
+
+
+        if (
+          vehicle
+        ) {
+
+          lockVIN(
+            candidate,
+            vehicle
+          );
+
+          return;
+
+        }
+
+
+        statusBox.innerText =
+          "Scanning VIN...";
 
       }
 
@@ -841,11 +1008,13 @@ async function automaticLoop() {
 
 
     /*
-      Small delay lets autofocus update
-      before the next frame.
+      Give autofocus a moment to adjust
+      before capturing another frame.
     */
 
-    await sleep(180);
+    await sleep(
+      120
+    );
 
   }
 
@@ -854,16 +1023,17 @@ async function automaticLoop() {
 
     scanning = false;
 
+
     scanLine.style.display =
       "none";
 
 
     statusBox.innerText =
-      "Couldn't read the VIN clearly.";
+      "VIN not found yet.";
 
 
     smallStatus.innerText =
-      "Move closer, center one VIN and tap Scan Again.";
+      "Center the VIN and try again.";
 
 
     retryButton.style.display =
@@ -874,11 +1044,11 @@ async function automaticLoop() {
 }
 
 
-/* ==================================================
-   CAPTURE ONLY GREEN BOX
-================================================== */
+/* =====================================================
+   CAPTURE TIGHT VIN STRIP
+===================================================== */
 
-function captureROI() {
+function captureVINStrip() {
 
   const videoWidth =
     video.videoWidth;
@@ -888,46 +1058,61 @@ function captureROI() {
 
 
   /*
-    The visible guide is approximately
-    top 42% → 58%.
+    V4 IMPORTANT:
 
-    We intentionally capture ONLY that
-    horizontal strip.
+    The visible green box starts around 43%.
+
+    We capture a NARROWER area inside it,
+    concentrating on the actual VIN line
+    rather than text underneath it.
+
+    This directly addresses the
+    "Storage 175$" test.
   */
 
   const cropX =
     Math.floor(
-      videoWidth * 0.03
+      videoWidth * 0.025
     );
+
 
   const cropY =
     Math.floor(
-      videoHeight * 0.42
+      videoHeight * 0.435
     );
+
 
   const cropWidth =
     Math.floor(
-      videoWidth * 0.94
+      videoWidth * 0.95
     );
+
 
   const cropHeight =
     Math.floor(
-      videoHeight * 0.16
+      videoHeight * 0.085
     );
 
 
   /*
-    Upscale OCR input.
+    2.5x enlargement gives Tesseract
+    more character pixels to work with.
   */
 
-  const SCALE = 2;
+  const SCALE =
+    2.5;
 
 
   captureCanvas.width =
-    cropWidth * SCALE;
+    Math.floor(
+      cropWidth * SCALE
+    );
+
 
   captureCanvas.height =
-    cropHeight * SCALE;
+    Math.floor(
+      cropHeight * SCALE
+    );
 
 
   const ctx =
@@ -939,8 +1124,17 @@ function captureROI() {
     );
 
 
+  ctx.clearRect(
+    0,
+    0,
+    captureCanvas.width,
+    captureCanvas.height
+  );
+
+
   ctx.imageSmoothingEnabled =
     true;
+
 
   ctx.imageSmoothingQuality =
     "high";
@@ -970,30 +1164,41 @@ function captureROI() {
 }
 
 
-/* ==================================================
-   IMAGE PROCESSING
-================================================== */
+/* =====================================================
+   IMAGE VARIANTS
+===================================================== */
 
-function preprocess(
+function makeVariant(
   source,
   mode
 ) {
 
-  processCanvas.width =
+  const output =
+    document.createElement(
+      "canvas"
+    );
+
+
+  output.width =
     source.width;
 
-  processCanvas.height =
+
+  output.height =
     source.height;
 
 
   const ctx =
-    processCanvas.getContext(
+    output.getContext(
       "2d",
       {
         willReadFrequently: true
       }
     );
 
+
+  /*
+    Normal image first.
+  */
 
   ctx.drawImage(
     source,
@@ -1002,12 +1207,21 @@ function preprocess(
   );
 
 
+  if (
+    mode === "normal"
+  ) {
+
+    return output;
+
+  }
+
+
   const image =
     ctx.getImageData(
       0,
       0,
-      processCanvas.width,
-      processCanvas.height
+      output.width,
+      output.height
     );
 
 
@@ -1030,56 +1244,73 @@ function preprocess(
       0.114 * data[i + 2];
 
 
-    let value;
+    let value =
+      gray;
 
 
     if (
-      mode === "threshold"
+      mode === "contrast"
     ) {
 
       value =
-        gray > 145
+        (gray - 128) *
+        2.0 +
+        128;
+
+    }
+
+
+    else if (
+      mode === "threshold130"
+    ) {
+
+      value =
+        gray > 130
           ? 255
           : 0;
 
     }
 
+
     else if (
-      mode === "inverted"
+      mode === "threshold160"
     ) {
 
       value =
-        gray > 145
-          ? 0
-          : 255;
+        gray > 160
+          ? 255
+          : 0;
 
     }
 
-    else {
+
+    else if (
+      mode === "invert"
+    ) {
 
       value =
-        (gray - 128) *
-        1.9 +
-        128;
-
-
-      value =
-        Math.max(
-          0,
-          Math.min(
-            255,
-            value
-          )
-        );
+        255 - gray;
 
     }
+
+
+    value =
+      Math.max(
+        0,
+        Math.min(
+          255,
+          value
+        )
+      );
 
 
     data[i] =
       value;
 
+
     data[i + 1] =
       value;
+
 
     data[i + 2] =
       value;
@@ -1094,121 +1325,97 @@ function preprocess(
   );
 
 
-  /*
-    Return an independent canvas.
-  */
-
-  const output =
-    document.createElement(
-      "canvas"
-    );
-
-
-  output.width =
-    processCanvas.width;
-
-  output.height =
-    processCanvas.height;
-
-
-  output
-    .getContext("2d")
-    .drawImage(
-      processCanvas,
-      0,
-      0
-    );
-
-
   return output;
 
 }
 
 
-/* ==================================================
-   EXTRACT VIN
-================================================== */
+/* =====================================================
+   EXTRACT VIN CANDIDATES
+===================================================== */
 
-function extractCandidates(rawText) {
+function extractCandidates(
+  rawText
+) {
 
-  const candidates =
+  const results =
     new Set();
 
 
   /*
-    NEVER merge all OCR lines.
+    CRITICAL:
+    Every OCR line is processed separately.
 
-    This fixes the exact problem where:
-    "storage 175$"
-    +
-    another VIN
-    became one fake 17-char result.
+    We NEVER join unrelated OCR lines.
   */
 
   const lines =
-    String(rawText)
-      .toUpperCase()
-      .split(/\r?\n/);
+    String(
+      rawText
+    )
+    .toUpperCase()
+    .split(
+      /\r?\n/
+    );
 
 
   for (
-    let line of lines
+    const originalLine of lines
   ) {
 
-    line =
-      line.trim();
-
-
-    if (!line) {
-      continue;
-    }
-
-
-    let clean =
-      line.replace(
-        /[^A-Z0-9]/g,
-        ""
-      );
-
-
-    /*
-      VIN cannot contain I, O or Q.
-
-      These are common OCR mistakes.
-    */
-
-    clean =
-      clean
-        .replace(/O/g, "0")
-        .replace(/Q/g, "0")
-        .replace(/I/g, "1");
-
-
-    /*
-      Important:
-      reject long lines instead of taking
-      arbitrary windows from lots of text.
-    */
-
     if (
-      clean.length < 17 ||
-      clean.length > 20
+      !originalLine.trim()
     ) {
 
       continue;
 
     }
 
+
+    let clean =
+      originalLine
+        .replace(
+          /[^A-Z0-9]/g,
+          ""
+        );
+
+
+    /*
+      OCR corrections that are safe for VIN:
+      I/O/Q do not exist in VINs.
+    */
+
+    clean =
+      clean
+        .replace(
+          /I/g,
+          "1"
+        )
+        .replace(
+          /O/g,
+          "0"
+        )
+        .replace(
+          /Q/g,
+          "0"
+        );
+
+
+    /*
+      Exact 17-char result = best case.
+    */
 
     if (
       clean.length === 17
     ) {
 
       if (
-        basicVINCheck(clean)
+        looksLikeVIN(
+          clean
+        )
       ) {
 
-        candidates.add(
+        results.add(
           clean
         );
 
@@ -1220,35 +1427,42 @@ function extractCandidates(rawText) {
 
 
     /*
-      OCR sometimes adds 1–3 characters
-      around the VIN.
+      OCR may accidentally attach a couple
+      characters before/after the VIN.
 
-      Only in that small case do we test
-      17-character windows.
+      Only allow a SMALL amount of noise.
     */
 
-    for (
-      let i = 0;
-      i <= clean.length - 17;
-      i++
+    if (
+      clean.length >= 18 &&
+      clean.length <= 21
     ) {
 
-      const possible =
-        clean.substring(
-          i,
-          i + 17
-        );
-
-
-      if (
-        basicVINCheck(
-          possible
-        )
+      for (
+        let start = 0;
+        start <=
+          clean.length - 17;
+        start++
       ) {
 
-        candidates.add(
-          possible
-        );
+        const candidate =
+          clean.substring(
+            start,
+            start + 17
+          );
+
+
+        if (
+          looksLikeVIN(
+            candidate
+          )
+        ) {
+
+          results.add(
+            candidate
+          );
+
+        }
 
       }
 
@@ -1257,18 +1471,26 @@ function extractCandidates(rawText) {
   }
 
 
-  return Array.from(
-    candidates
-  );
+  return [
+    ...results
+  ];
 
 }
 
 
-/* ==================================================
-   BASIC VIN VALIDATION
-================================================== */
+/* =====================================================
+   LOCAL VIN FILTER
+===================================================== */
 
-function basicVINCheck(vin) {
+function looksLikeVIN(
+  vin
+) {
+
+  /*
+    Exactly 17 chars.
+
+    VIN excludes I, O, Q.
+  */
 
   if (
     !/^[A-HJ-NPR-Z0-9]{17}$/.test(
@@ -1281,14 +1503,19 @@ function basicVINCheck(vin) {
   }
 
 
-  const uniqueChars =
+  /*
+    Prevent nonsense such as repeating
+    OCR characters.
+  */
+
+  const unique =
     new Set(
       vin.split("")
     );
 
 
   if (
-    uniqueChars.size < 6
+    unique.size < 6
   ) {
 
     return false;
@@ -1298,7 +1525,6 @@ function basicVINCheck(vin) {
 
   /*
     Position 10 is model-year code.
-    This removes many random OCR strings.
   */
 
   const yearCode =
@@ -1321,50 +1547,11 @@ function basicVINCheck(vin) {
 }
 
 
-/* ==================================================
-   VOTING
-================================================== */
-
-function addVote(vin) {
-
-  if (!votes[vin]) {
-
-    votes[vin] = 0;
-
-  }
-
-
-  votes[vin]++;
-
-
-  console.log(
-    "VIN candidate:",
-    vin,
-    "votes:",
-    votes[vin]
-  );
-
-}
-
-
-function clearVotes() {
-
-  for (
-    const vin in votes
-  ) {
-
-    delete votes[vin];
-
-  }
-
-}
-
-
-/* ==================================================
+/* =====================================================
    NHTSA VERIFICATION
-================================================== */
+===================================================== */
 
-async function verifyWithNHTSA(
+async function verifyVIN(
   vin
 ) {
 
@@ -1374,16 +1561,22 @@ async function verifyWithNHTSA(
 
       "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/" +
 
-      encodeURIComponent(vin) +
+      encodeURIComponent(
+        vin
+      ) +
 
       "?format=json";
 
 
     const response =
-      await fetch(url);
+      await fetch(
+        url
+      );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       return null;
 
@@ -1396,7 +1589,7 @@ async function verifyWithNHTSA(
 
     if (
       !data.Results ||
-      !data.Results.length
+      data.Results.length === 0
     ) {
 
       return null;
@@ -1407,13 +1600,6 @@ async function verifyWithNHTSA(
     const vehicle =
       data.Results[0];
 
-
-    /*
-      A random 17-character string may still
-      receive a response.
-
-      We require meaningful vehicle data.
-    */
 
     const year =
       String(
@@ -1427,10 +1613,32 @@ async function verifyWithNHTSA(
       ).trim();
 
 
+    const model =
+      String(
+        vehicle.Model || ""
+      ).trim();
+
+
+    /*
+      THIS IS THE IMPORTANT SAFETY GATE.
+
+      Garbage OCR is NOT accepted simply
+      because NHTSA answered the request.
+
+      We require actual decoded vehicle data.
+    */
+
     if (
       !year ||
       !make
     ) {
+
+      console.log(
+        "Rejected VIN:",
+        vin,
+        "No useful vehicle data."
+      );
+
 
       return null;
 
@@ -1446,9 +1654,7 @@ async function verifyWithNHTSA(
         make,
 
       model:
-        String(
-          vehicle.Model || ""
-        ).trim()
+        model
 
     };
 
@@ -1456,8 +1662,8 @@ async function verifyWithNHTSA(
 
   catch (error) {
 
-    console.error(
-      "NHTSA verification failed:",
+    console.log(
+      "VIN verification error:",
       error
     );
 
@@ -1469,16 +1675,21 @@ async function verifyWithNHTSA(
 }
 
 
-/* ==================================================
-   LOCK VIN
-================================================== */
+/* =====================================================
+   SUCCESS
+===================================================== */
 
 function lockVIN(
   vin,
   vehicle
 ) {
 
-  scanning = false;
+  scanning =
+    false;
+
+
+  verifying =
+    false;
 
 
   detectedVIN =
@@ -1511,8 +1722,12 @@ function lockVIN(
       detectedMake,
       detectedModel
     ]
-    .filter(Boolean)
-    .join(" ");
+    .filter(
+      Boolean
+    )
+    .join(
+      " "
+    );
 
 
   resultBox.style.display =
@@ -1520,11 +1735,11 @@ function lockVIN(
 
 
   statusBox.innerText =
-    "VIN confirmed.";
+    "VIN verified successfully.";
 
 
   smallStatus.innerText =
-    "Vehicle successfully identified.";
+    "Check the vehicle and continue.";
 
 
   confirmButton.style.display =
@@ -1545,61 +1760,35 @@ function lockVIN(
 }
 
 
-/* ==================================================
+/* =====================================================
    RETRY
-================================================== */
+===================================================== */
 
 retryButton.addEventListener(
   "click",
   function() {
 
-    scanning = false;
-
-    detectedVIN = "";
-
-    detectedYear = "";
-
-    detectedMake = "";
-
-    detectedModel = "";
-
-
-    vinResult.innerText = "";
-
-    vehicleResult.innerText = "";
-
-
-    resultBox.style.display =
-      "none";
-
-
-    confirmButton.style.display =
-      "none";
-
-
-    retryButton.style.display =
-      "none";
-
-
-    manualBox.style.display =
-      "none";
-
-
-    manualVIN.value = "";
+    scanning =
+      false;
 
 
     setTimeout(
-      beginAutomaticScanning,
-      200
+      function() {
+
+        startAutomaticScan();
+
+      },
+
+      150
     );
 
   }
 );
 
 
-/* ==================================================
+/* =====================================================
    MANUAL ENTRY
-================================================== */
+===================================================== */
 
 manualButton.addEventListener(
   "click",
@@ -1648,7 +1837,9 @@ manualSubmit.addEventListener(
 
 
     if (
-      !basicVINCheck(vin)
+      !looksLikeVIN(
+        vin
+      )
     ) {
 
       statusBox.innerText =
@@ -1660,16 +1851,18 @@ manualSubmit.addEventListener(
 
 
     statusBox.innerText =
-      "Checking VIN...";
+      "Verifying VIN...";
 
 
     const vehicle =
-      await verifyWithNHTSA(
+      await verifyVIN(
         vin
       );
 
 
-    if (!vehicle) {
+    if (
+      !vehicle
+    ) {
 
       statusBox.innerText =
         "VIN could not be verified.";
@@ -1688,16 +1881,20 @@ manualSubmit.addEventListener(
 );
 
 
-/* ==================================================
+/* =====================================================
    CONFIRM → APPSHEET
-================================================== */
+===================================================== */
 
 confirmButton.addEventListener(
   "click",
   function() {
 
-    if (!detectedVIN) {
+    if (
+      !detectedVIN
+    ) {
+
       return;
+
     }
 
 
@@ -1752,26 +1949,31 @@ confirmButton.addEventListener(
 );
 
 
-/* ==================================================
-   HELPERS
-================================================== */
+/* =====================================================
+   HELPER
+===================================================== */
 
-function sleep(ms) {
+function sleep(
+  ms
+) {
 
   return new Promise(
-    resolve =>
+    function(resolve) {
+
       setTimeout(
         resolve,
         ms
-      )
+      );
+
+    }
   );
 
 }
 
 
-/* ==================================================
+/* =====================================================
    START
-================================================== */
+===================================================== */
 
 window.addEventListener(
   "load",

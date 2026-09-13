@@ -842,14 +842,7 @@ async function scanFrame() {
 
     const result =
       await sendToBackend(image);
-if (
-  result &&
-  result.found === false &&
-  result.debug
-) {
-  statusText.textContent =
-    "Gemini: " + result.debug;
-}
+
 
     if (
       result &&
@@ -870,10 +863,9 @@ if (
       Keep camera alive and try another fresh frame.
     */
 
-   if (!result || !result.debug) {
-  statusText.textContent =
-    "Point at VIN";
-}
+    statusText.textContent =
+      "Point at VIN";
+
   }
   catch (error) {
 

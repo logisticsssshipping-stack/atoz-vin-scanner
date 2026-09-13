@@ -1094,21 +1094,18 @@ async function scanFrame() {
     }
 
 
-    if (
-      result &&
-      result.error
-    ) {
-
-      console.error(
-        "Backend:",
-        result.error
-      );
-
-    }
-
-
-    statusText.textContent =
-      "Point at VIN";
+   if (result && result.raw) {
+  statusText.textContent =
+    "Gemini: " + result.raw;
+}
+else if (result && result.error) {
+  statusText.textContent =
+    "ERROR: " + result.error;
+}
+else {
+  statusText.textContent =
+    "NOT FOUND";
+}
 
   }
 

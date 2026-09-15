@@ -918,16 +918,26 @@ async function scanFrame() {
         "Point at VIN";
 
 
-      if (
-        result.gemini &&
-        result.gemini !== "NOT_FOUND"
-      ) {
+     if (result.visionText) {
 
-        detailsText.textContent =
-          "Gemini saw: " +
-          result.gemini;
+  detailsText.textContent =
+    "Vision saw: " +
+    result.visionText;
 
-      }
+}
+else if (result.ocr) {
+
+  detailsText.textContent =
+    "Vision saw: " +
+    result.ocr;
+
+}
+else {
+
+  detailsText.textContent =
+    "Vision found no text";
+
+}
 
       else {
 

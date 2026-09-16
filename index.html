@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
   <meta charset="UTF-8">
 
   <meta
@@ -15,68 +14,42 @@
 
   <title>A-to-Z VIN Scanner</title>
 
-
   <style>
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-
     html,
     body {
-
       width: 100%;
       height: 100%;
-
       overflow: hidden;
-
       background: #000;
-
       font-family: Arial, sans-serif;
-
     }
-
 
     #camera {
-
       position: fixed;
-
       inset: 0;
-
       width: 100%;
       height: 100%;
-
       object-fit: cover;
-
       background: #000;
-
     }
-
 
     #overlay {
-
       position: fixed;
-
       inset: 0;
-
       display: flex;
-
       flex-direction: column;
-
       align-items: center;
-
       pointer-events: none;
-
     }
 
-
     #header {
-
       position: absolute;
-
       top: 0;
       left: 0;
       right: 0;
@@ -87,7 +60,6 @@
         18px;
 
       text-align: center;
-
       color: white;
 
       background:
@@ -96,81 +68,49 @@
           rgba(0,0,0,0.80),
           rgba(0,0,0,0)
         );
-
     }
-
 
     #title {
-
       font-size: 21px;
-
       font-weight: 700;
-
     }
-
 
     #subtitle {
-
       margin-top: 6px;
-
       font-size: 14px;
-
       opacity: 0.85;
-
     }
 
-
     #scanArea {
-
       position: absolute;
-
       left: 4%;
-
       top: 50%;
-
       transform: translateY(-50%);
-
       width: 92%;
-
       height: 90px;
 
       border: 3px solid #00ff66;
-
       border-radius: 12px;
 
       box-shadow:
         0 0 0 9999px rgba(0,0,0,0.32),
         0 0 20px rgba(0,255,102,0.35);
-
     }
-
 
     #scanArea::before {
-
       content: "";
-
       position: absolute;
-
       left: 4%;
       right: 4%;
-
       top: 50%;
-
       height: 2px;
-
       transform: translateY(-50%);
-
       background: #00ff66;
-
       box-shadow: 0 0 10px #00ff66;
-
     }
 
-
     #bottomPanel {
-
       position: absolute;
-
       left: 12px;
       right: 12px;
 
@@ -181,133 +121,82 @@
         );
 
       padding: 18px;
-
       border-radius: 16px;
-
       background: rgba(0,0,0,0.78);
-
       color: white;
-
       text-align: center;
-
       pointer-events: auto;
-
     }
-
 
     #status {
-
       font-size: 17px;
-
       font-weight: 700;
-
     }
-
 
     #result {
-
       margin-top: 10px;
-
       min-height: 30px;
-
       font-size: 22px;
-
       font-weight: 800;
-
       letter-spacing: 1px;
-
       color: #00ff66;
-
       word-break: break-all;
-
     }
 
+    #vehicleInfo {
+      display: none;
+      margin-top: 8px;
+      font-size: 17px;
+      line-height: 1.4;
+      font-weight: 700;
+      color: white;
+    }
 
     #details {
-
       margin-top: 7px;
-
       font-size: 12px;
-
       opacity: 0.75;
-
       word-break: break-word;
-
       max-height: 100px;
-
       overflow: hidden;
-
     }
-
 
     #restartButton {
-
       display: none;
-
       width: 100%;
-
       margin-top: 15px;
-
       padding: 14px;
-
       border: 0;
-
       border-radius: 10px;
-
       font-size: 16px;
-
       font-weight: 700;
-
       background: white;
-
       color: black;
-
       cursor: pointer;
-
     }
-
 
     #addInventoryButton {
-
       display: none;
-
       width: 100%;
-
       margin-top: 10px;
-
       padding: 14px;
-
       border: 0;
-
       border-radius: 10px;
-
       font-size: 16px;
-
       font-weight: 700;
-
       background: #00ff66;
-
       color: #000;
-
       cursor: pointer;
-
     }
-
 
     #captureCanvas {
-
       display: none;
-
     }
-
   </style>
-
 </head>
 
 
-
 <body>
-
 
   <video
     id="camera"
@@ -316,14 +205,9 @@
     muted
   ></video>
 
-
-  <canvas
-    id="captureCanvas"
-  ></canvas>
-
+  <canvas id="captureCanvas"></canvas>
 
   <div id="overlay">
-
 
     <div id="header">
 
@@ -337,9 +221,7 @@
 
     </div>
 
-
     <div id="scanArea"></div>
-
 
     <div id="bottomPanel">
 
@@ -349,13 +231,13 @@
 
       <div id="result"></div>
 
-      <div id="details"></div>
+      <div id="vehicleInfo"></div>
 
+      <div id="details"></div>
 
       <button id="restartButton">
         SCAN AGAIN
       </button>
-
 
       <button id="addInventoryButton">
         ADD TO INVENTORY
@@ -363,1218 +245,1017 @@
 
     </div>
 
-
   </div>
 
 
+<script>
 
-  <script>
+/*
+====================================================
+CONFIGURATION
+====================================================
+*/
 
+const BACKEND_URL =
+  "https://script.google.com/macros/s/AKfycbxeFrEttl7fh8lmSzBJGO852xYTTsV5BrjHssoj2IK4biAhJLApLMs1qUIbbAlsbHWXsw/exec";
 
-    /*
-    ====================================================
-    CONFIGURATION
-    ====================================================
-    */
+const SCAN_INTERVAL = 250;
 
+const JPEG_QUALITY = 0.88;
 
-    const BACKEND_URL =
-      "https://script.google.com/macros/s/AKfycbxeFrEttl7fh8lmSzBJGO852xYTTsV5BrjHssoj2IK4biAhJLApLMs1qUIbbAlsbHWXsw/exec";
+const APPSHEET_APP_ID =
+  "c9b42286-9e3c-4647-a376-6b7823b93237";
 
+const APPSHEET_FORM_VIEW =
+  "A-to-Z Yard Inventory V1_Form";
 
-    const SCAN_INTERVAL =
-      250;
 
+/*
+====================================================
+ELEMENTS
+====================================================
+*/
 
-    const JPEG_QUALITY =
-      0.88;
+const video =
+  document.getElementById("camera");
 
+const canvas =
+  document.getElementById("captureCanvas");
 
-    const APPSHEET_APP_ID =
-      "c9b42286-9e3c-4647-a376-6b7823b93237";
+const scanArea =
+  document.getElementById("scanArea");
 
+const statusText =
+  document.getElementById("status");
 
-    const APPSHEET_FORM_VIEW =
-      "A-to-Z Yard Inventory V1_Form";
+const resultText =
+  document.getElementById("result");
 
+const vehicleInfo =
+  document.getElementById("vehicleInfo");
 
+const detailsText =
+  document.getElementById("details");
 
-    /*
-    ====================================================
-    ELEMENTS
-    ====================================================
-    */
+const restartButton =
+  document.getElementById("restartButton");
 
+const addInventoryButton =
+  document.getElementById("addInventoryButton");
 
-    const video =
-      document.getElementById(
-        "camera"
-      );
 
+/*
+====================================================
+STATE
+====================================================
+*/
 
-    const canvas =
-      document.getElementById(
-        "captureCanvas"
-      );
+let scanning = false;
 
+let locked = false;
 
-    const scanArea =
-      document.getElementById(
-        "scanArea"
-      );
+let timer = null;
 
+let cameraStream = null;
 
-    const statusText =
-      document.getElementById(
-        "status"
-      );
+let detectedVehicle = {
+  vin: "",
+  year: "",
+  make: "",
+  model: ""
+};
 
 
-    const resultText =
-      document.getElementById(
-        "result"
-      );
+/*
+====================================================
+START CAMERA
+====================================================
+*/
 
+async function startCamera() {
 
-    const detailsText =
-      document.getElementById(
-        "details"
-      );
+  try {
 
+    statusText.textContent =
+      "Opening camera...";
 
-    const restartButton =
-      document.getElementById(
-        "restartButton"
-      );
+    detailsText.textContent = "";
 
-
-    const addInventoryButton =
-      document.getElementById(
-        "addInventoryButton"
-      );
-
-
-
-    /*
-    ====================================================
-    STATE
-    ====================================================
-    */
-
-
-    let scanning =
-      false;
-
-
-    let locked =
-      false;
-
-
-    let timer =
-      null;
-
-
-    let cameraStream =
-      null;
-
-
-    let detectedVin =
-      "";
-
-
-
-    /*
-    ====================================================
-    START CAMERA
-    ====================================================
-    */
-
-
-    async function startCamera() {
-
-      try {
-
-
-        statusText.textContent =
-          "Opening camera...";
-
-
-        detailsText.textContent =
-          "";
-
-
-        if (
-          !navigator.mediaDevices ||
-          !navigator.mediaDevices.getUserMedia
-        ) {
-
-          throw new Error(
-            "Camera is not supported by this browser."
-          );
-
-        }
-
-
-        const constraints = {
-
-          audio: false,
-
-          video: {
-
-            facingMode: {
-              ideal: "environment"
-            },
-
-            width: {
-              ideal: 1920
-            },
-
-            height: {
-              ideal: 1080
-            }
-
-          }
-
-        };
-
-
-        cameraStream =
-          await navigator.mediaDevices
-            .getUserMedia(
-              constraints
-            );
-
-
-        video.srcObject =
-          cameraStream;
-
-
-        await video.play();
-
-
-        await waitForVideo();
-
-
-        await tryCameraEnhancements(
-          cameraStream
-        );
-
-
-        statusText.textContent =
-          "Point at VIN";
-
-
-        detailsText.textContent =
-          "Cloud Vision scanner ready";
-
-
-        scanning =
-          true;
-
-
-        locked =
-          false;
-
-
-        scheduleNextScan(
-          500
-        );
-
-
-      }
-
-      catch (error) {
-
-
-        console.error(
-          "CAMERA ERROR:",
-          error
-        );
-
-
-        statusText.textContent =
-          "Camera error";
-
-
-        detailsText.textContent =
-          error.message ||
-          String(error);
-
-
-      }
-
-    }
-
-
-
-    /*
-    ====================================================
-    WAIT FOR CAMERA
-    ====================================================
-    */
-
-
-    function waitForVideo() {
-
-      return new Promise(
-        function(resolve) {
-
-
-          if (
-            video.videoWidth > 0 &&
-            video.videoHeight > 0
-          ) {
-
-            resolve();
-
-            return;
-
-          }
-
-
-          video.addEventListener(
-            "loadedmetadata",
-
-            function() {
-
-              resolve();
-
-            },
-
-            {
-              once: true
-            }
-
-          );
-
-
-        }
-      );
-
-    }
-
-
-
-    /*
-    ====================================================
-    CAMERA ENHANCEMENTS
-    ====================================================
-    */
-
-
-    async function tryCameraEnhancements(
-      stream
+    if (
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia
     ) {
 
-      try {
-
-
-        const track =
-          stream.getVideoTracks()[0];
-
-
-        if (!track) {
-
-          return;
-
-        }
-
-
-        const capabilities =
-          track.getCapabilities
-            ? track.getCapabilities()
-            : {};
-
-
-        const advanced =
-          {};
-
-
-        if (
-          capabilities.focusMode &&
-          capabilities.focusMode.includes(
-            "continuous"
-          )
-        ) {
-
-          advanced.focusMode =
-            "continuous";
-
-        }
-
-
-        if (
-          capabilities.exposureMode &&
-          capabilities.exposureMode.includes(
-            "continuous"
-          )
-        ) {
-
-          advanced.exposureMode =
-            "continuous";
-
-        }
-
-
-        if (
-          capabilities.whiteBalanceMode &&
-          capabilities.whiteBalanceMode.includes(
-            "continuous"
-          )
-        ) {
-
-          advanced.whiteBalanceMode =
-            "continuous";
-
-        }
-
-
-        if (
-          Object.keys(
-            advanced
-          ).length > 0
-        ) {
-
-          await track.applyConstraints({
-
-            advanced: [
-              advanced
-            ]
-
-          });
-
-        }
-
-
-      }
-
-      catch (error) {
-
-
-        console.log(
-          "Camera enhancement skipped:",
-          error
-        );
-
-
-      }
+      throw new Error(
+        "Camera is not supported by this browser."
+      );
 
     }
 
+    const constraints = {
+
+      audio: false,
+
+      video: {
+
+        facingMode: {
+          ideal: "environment"
+        },
+
+        width: {
+          ideal: 1920
+        },
+
+        height: {
+          ideal: 1080
+        }
+
+      }
+
+    };
+
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia(
+        constraints
+      );
+
+    video.srcObject =
+      cameraStream;
+
+    await video.play();
+
+    await waitForVideo();
+
+    await tryCameraEnhancements(
+      cameraStream
+    );
+
+    statusText.textContent =
+      "Point at VIN";
+
+    detailsText.textContent =
+      "Cloud Vision scanner ready";
+
+    scanning = true;
+
+    locked = false;
+
+    scheduleNextScan(500);
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "CAMERA ERROR:",
+      error
+    );
+
+    statusText.textContent =
+      "Camera error";
+
+    detailsText.textContent =
+      error.message ||
+      String(error);
+
+  }
+
+}
 
 
-    /*
-    ====================================================
-    CAPTURE GREEN BOX
-    ====================================================
-    */
+/*
+====================================================
+WAIT FOR CAMERA
+====================================================
+*/
 
+function waitForVideo() {
 
-    function captureVinArea() {
-
-
-      const videoRect =
-        video.getBoundingClientRect();
-
-
-      const scanRect =
-        scanArea.getBoundingClientRect();
-
-
-      const sourceWidth =
-        video.videoWidth;
-
-
-      const sourceHeight =
-        video.videoHeight;
-
+  return new Promise(
+    function(resolve) {
 
       if (
-        !sourceWidth ||
-        !sourceHeight
+        video.videoWidth > 0 &&
+        video.videoHeight > 0
       ) {
 
-        throw new Error(
-          "Camera not ready."
-        );
-
-      }
-
-
-      const scale =
-        Math.max(
-
-          videoRect.width /
-            sourceWidth,
-
-          videoRect.height /
-            sourceHeight
-
-        );
-
-
-      const displayedWidth =
-        sourceWidth *
-        scale;
-
-
-      const displayedHeight =
-        sourceHeight *
-        scale;
-
-
-      const offsetX =
-        (
-          displayedWidth -
-          videoRect.width
-        ) / 2;
-
-
-      const offsetY =
-        (
-          displayedHeight -
-          videoRect.height
-        ) / 2;
-
-
-      let x =
-        (
-          scanRect.left -
-          videoRect.left +
-          offsetX
-        ) / scale;
-
-
-      let y =
-        (
-          scanRect.top -
-          videoRect.top +
-          offsetY
-        ) / scale;
-
-
-      let width =
-        scanRect.width /
-        scale;
-
-
-      let height =
-        scanRect.height /
-        scale;
-
-
-      const horizontalPadding =
-        width *
-        0.04;
-
-
-      const verticalPadding =
-        height *
-        0.15;
-
-
-      x -=
-        horizontalPadding;
-
-
-      y -=
-        verticalPadding;
-
-
-      width +=
-        horizontalPadding *
-        2;
-
-
-      height +=
-        verticalPadding *
-        2;
-
-
-      x =
-        Math.max(
-          0,
-          x
-        );
-
-
-      y =
-        Math.max(
-          0,
-          y
-        );
-
-
-      width =
-        Math.min(
-          width,
-          sourceWidth - x
-        );
-
-
-      height =
-        Math.min(
-          height,
-          sourceHeight - y
-        );
-
-
-      const targetWidth =
-        1400;
-
-
-      const outputScale =
-        Math.max(
-
-          1,
-
-          targetWidth /
-            width
-
-        );
-
-
-      canvas.width =
-        Math.round(
-          width *
-          outputScale
-        );
-
-
-      canvas.height =
-        Math.round(
-          height *
-          outputScale
-        );
-
-
-      const ctx =
-        canvas.getContext(
-          "2d"
-        );
-
-
-      ctx.imageSmoothingEnabled =
-        true;
-
-
-      ctx.imageSmoothingQuality =
-        "high";
-
-
-      ctx.drawImage(
-
-        video,
-
-        x,
-        y,
-
-        width,
-        height,
-
-        0,
-        0,
-
-        canvas.width,
-        canvas.height
-
-      );
-
-
-      return canvas.toDataURL(
-
-        "image/jpeg",
-
-        JPEG_QUALITY
-
-      );
-
-    }
-
-
-
-    /*
-    ====================================================
-    SEND IMAGE TO CLOUD VISION
-    ====================================================
-    */
-
-
-    async function sendImage(
-      imageData
-    ) {
-
-
-      const response =
-        await fetch(
-
-          BACKEND_URL,
-
-          {
-
-            method:
-              "POST",
-
-            headers: {
-
-              "Content-Type":
-                "text/plain;charset=utf-8"
-
-            },
-
-            body:
-              JSON.stringify({
-
-                action:
-                  "scanVin",
-
-                image:
-                  imageData
-
-              }),
-
-            redirect:
-              "follow"
-
-          }
-
-        );
-
-
-      if (!response.ok) {
-
-        throw new Error(
-          "Backend HTTP " +
-          response.status
-        );
-
-      }
-
-
-      const text =
-        await response.text();
-
-
-      try {
-
-        return JSON.parse(
-          text
-        );
-
-      }
-
-      catch (error) {
-
-        console.error(
-          "INVALID BACKEND RESPONSE:",
-          text
-        );
-
-        throw new Error(
-          "Backend returned invalid JSON."
-        );
-
-      }
-
-    }
-
-
-
-    /*
-    ====================================================
-    LOCAL VIN VALIDATION
-    ====================================================
-    */
-
-
-    function isValidVin(
-      vin
-    ) {
-
-
-      return (
-
-        typeof vin ===
-          "string" &&
-
-        /^[A-HJ-NPR-Z0-9]{17}$/
-          .test(
-            vin
-          )
-
-      );
-
-    }
-
-
-
-    /*
-    ====================================================
-    AUTOMATIC SCANNER
-    ====================================================
-    */
-
-
-    async function scanFrame() {
-
-
-      if (
-        !scanning ||
-        locked
-      ) {
-
+        resolve();
         return;
 
       }
 
+      video.addEventListener(
+        "loadedmetadata",
 
-      try {
+        function() {
+          resolve();
+        },
 
+        {
+          once: true
+        }
 
-        statusText.textContent =
-          "Reading VIN...";
+      );
 
+    }
+  );
 
-        const image =
-          captureVinArea();
-
-
-        const result =
-          await sendImage(
-            image
-          );
-
-
-        console.log(
-          "CLOUD VISION RESULT:",
-          result
-        );
+}
 
 
-        if (
-          result &&
-          result.success === true &&
-          result.found === true &&
-          isValidVin(
-            result.vin
-          )
-        ) {
-
-
-          /*
+/*
 ====================================================
-DECODE VIN - NHTSA
+CAMERA ENHANCEMENTS
 ====================================================
 */
 
-async function decodeVin(vin) {
+async function tryCameraEnhancements(
+  stream
+) {
 
-  const url =
-    "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/" +
-    encodeURIComponent(vin) +
-    "?format=json";
+  try {
 
-  const response =
-    await fetch(url);
+    const track =
+      stream.getVideoTracks()[0];
 
-  if (!response.ok) {
-    throw new Error("VIN decoder failed");
+    if (!track) {
+      return;
+    }
+
+    const capabilities =
+      track.getCapabilities
+        ? track.getCapabilities()
+        : {};
+
+    const advanced = {};
+
+    if (
+      capabilities.focusMode &&
+      capabilities.focusMode.includes(
+        "continuous"
+      )
+    ) {
+
+      advanced.focusMode =
+        "continuous";
+
+    }
+
+    if (
+      capabilities.exposureMode &&
+      capabilities.exposureMode.includes(
+        "continuous"
+      )
+    ) {
+
+      advanced.exposureMode =
+        "continuous";
+
+    }
+
+    if (
+      capabilities.whiteBalanceMode &&
+      capabilities.whiteBalanceMode.includes(
+        "continuous"
+      )
+    ) {
+
+      advanced.whiteBalanceMode =
+        "continuous";
+
+    }
+
+    if (
+      Object.keys(advanced).length > 0
+    ) {
+
+      await track.applyConstraints({
+
+        advanced: [
+          advanced
+        ]
+
+      });
+
+    }
+
   }
 
-  const data =
-    await response.json();
+  catch (error) {
+
+    console.log(
+      "Camera enhancement skipped:",
+      error
+    );
+
+  }
+
+}
+
+
+/*
+====================================================
+CAPTURE GREEN BOX
+====================================================
+*/
+
+function captureVinArea() {
+
+  const videoRect =
+    video.getBoundingClientRect();
+
+  const scanRect =
+    scanArea.getBoundingClientRect();
+
+  const sourceWidth =
+    video.videoWidth;
+
+  const sourceHeight =
+    video.videoHeight;
 
   if (
-    !data.Results ||
-    !data.Results.length
+    !sourceWidth ||
+    !sourceHeight
   ) {
-    throw new Error("No vehicle data found");
+
+    throw new Error(
+      "Camera not ready."
+    );
+
   }
 
-  const vehicle =
-    data.Results[0];
+  const scale =
+    Math.max(
 
-  return {
+      videoRect.width /
+        sourceWidth,
+
+      videoRect.height /
+        sourceHeight
+
+    );
+
+  const displayedWidth =
+    sourceWidth * scale;
+
+  const displayedHeight =
+    sourceHeight * scale;
+
+  const offsetX =
+    (
+      displayedWidth -
+      videoRect.width
+    ) / 2;
+
+  const offsetY =
+    (
+      displayedHeight -
+      videoRect.height
+    ) / 2;
+
+  let x =
+    (
+      scanRect.left -
+      videoRect.left +
+      offsetX
+    ) / scale;
+
+  let y =
+    (
+      scanRect.top -
+      videoRect.top +
+      offsetY
+    ) / scale;
+
+  let width =
+    scanRect.width /
+    scale;
+
+  let height =
+    scanRect.height /
+    scale;
+
+  const horizontalPadding =
+    width * 0.04;
+
+  const verticalPadding =
+    height * 0.15;
+
+  x -= horizontalPadding;
+
+  y -= verticalPadding;
+
+  width +=
+    horizontalPadding * 2;
+
+  height +=
+    verticalPadding * 2;
+
+  x =
+    Math.max(
+      0,
+      x
+    );
+
+  y =
+    Math.max(
+      0,
+      y
+    );
+
+  width =
+    Math.min(
+      width,
+      sourceWidth - x
+    );
+
+  height =
+    Math.min(
+      height,
+      sourceHeight - y
+    );
+
+  const targetWidth = 1400;
+
+  const outputScale =
+    Math.max(
+      1,
+      targetWidth / width
+    );
+
+  canvas.width =
+    Math.round(
+      width * outputScale
+    );
+
+  canvas.height =
+    Math.round(
+      height * outputScale
+    );
+
+  const ctx =
+    canvas.getContext("2d");
+
+  ctx.imageSmoothingEnabled =
+    true;
+
+  ctx.imageSmoothingQuality =
+    "high";
+
+  ctx.drawImage(
+
+    video,
+
+    x,
+    y,
+
+    width,
+    height,
+
+    0,
+    0,
+
+    canvas.width,
+    canvas.height
+
+  );
+
+  return canvas.toDataURL(
+    "image/jpeg",
+    JPEG_QUALITY
+  );
+
+}
+
+
+/*
+====================================================
+SEND IMAGE TO BACKEND
+====================================================
+*/
+
+async function sendImage(
+  imageData
+) {
+
+  const response =
+    await fetch(
+
+      BACKEND_URL,
+
+      {
+
+        method: "POST",
+
+        headers: {
+
+          "Content-Type":
+            "text/plain;charset=utf-8"
+
+        },
+
+        body:
+          JSON.stringify({
+
+            action: "scanVin",
+
+            image: imageData
+
+          }),
+
+        redirect: "follow"
+
+      }
+
+    );
+
+  if (!response.ok) {
+
+    throw new Error(
+      "Backend HTTP " +
+      response.status
+    );
+
+  }
+
+  const text =
+    await response.text();
+
+  try {
+
+    return JSON.parse(text);
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "INVALID BACKEND RESPONSE:",
+      text
+    );
+
+    throw new Error(
+      "Backend returned invalid JSON."
+    );
+
+  }
+
+}
+
+
+/*
+====================================================
+LOCAL VIN VALIDATION
+====================================================
+*/
+
+function isValidVin(
+  vin
+) {
+
+  return (
+
+    typeof vin === "string" &&
+
+    /^[A-HJ-NPR-Z0-9]{17}$/
+      .test(vin)
+
+  );
+
+}
+
+
+/*
+====================================================
+AUTOMATIC SCANNER
+====================================================
+*/
+
+async function scanFrame() {
+
+  if (
+    !scanning ||
+    locked
+  ) {
+
+    return;
+
+  }
+
+  try {
+
+    statusText.textContent =
+      "Reading VIN...";
+
+    const image =
+      captureVinArea();
+
+    const result =
+      await sendImage(image);
+
+    console.log(
+      "BACKEND RESULT:",
+      result
+    );
+
+
+    /*
+    ====================================================
+    VIN FOUND
+    ====================================================
+    */
+
+    if (
+      result &&
+      result.success === true &&
+      result.found === true &&
+      isValidVin(result.vin)
+    ) {
+
+      lockVin(result);
+
+      return;
+
+    }
+
+
+    /*
+    ====================================================
+    NO VIN FOUND
+    ====================================================
+    */
+
+    if (
+      result &&
+      result.success === true &&
+      result.found === false
+    ) {
+
+      statusText.textContent =
+        "Point at VIN";
+
+      if (
+        result.visionText
+      ) {
+
+        detailsText.textContent =
+          "Vision saw: " +
+          result.visionText;
+
+      }
+
+      else if (
+        result.ocr
+      ) {
+
+        detailsText.textContent =
+          "Vision saw: " +
+          result.ocr;
+
+      }
+
+      else {
+
+        detailsText.textContent =
+          "Vision found no text";
+
+      }
+
+    }
+
+
+    /*
+    ====================================================
+    BACKEND ERROR
+    ====================================================
+    */
+
+    else if (
+      result &&
+      result.success === false
+    ) {
+
+      statusText.textContent =
+        "Backend error";
+
+      detailsText.textContent =
+        result.error ||
+        "Unknown backend error";
+
+    }
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "SCANNER ERROR:",
+      error
+    );
+
+    statusText.textContent =
+      "Scanner error";
+
+    detailsText.textContent =
+      error.message ||
+      String(error);
+
+  }
+
+  scheduleNextScan(
+    SCAN_INTERVAL
+  );
+
+}
+
+
+/*
+====================================================
+SCHEDULE NEXT SCAN
+====================================================
+*/
+
+function scheduleNextScan(
+  delay
+) {
+
+  clearTimeout(timer);
+
+  timer =
+    setTimeout(
+      scanFrame,
+      delay
+    );
+
+}
+
+
+/*
+====================================================
+VIN DETECTED
+====================================================
+*/
+
+function lockVin(
+  result
+) {
+
+  locked = true;
+
+  scanning = false;
+
+  clearTimeout(timer);
+
+
+  /*
+  ====================================================
+  SAVE ALL BACKEND INFORMATION
+  ====================================================
+  */
+
+  detectedVehicle = {
+
+    vin:
+      String(
+        result.vin || ""
+      ).trim(),
 
     year:
-      vehicle.ModelYear || "",
+      String(
+        result.year || ""
+      ).trim(),
 
     make:
-      vehicle.Make || "",
+      String(
+        result.make || ""
+      ).trim(),
 
     model:
-      vehicle.Model || ""
+      String(
+        result.model || ""
+      ).trim()
 
   };
 
-}
 
-         lockVin(
-            result.vin
-          );
+  /*
+  ====================================================
+  SHOW VIN
+  ====================================================
+  */
 
+  statusText.textContent =
+    "VIN DETECTED ✓";
 
-          return;
+  resultText.textContent =
+    detectedVehicle.vin;
 
-        }
 
+  /*
+  ====================================================
+  SHOW YEAR + MAKE + MODEL
+  ====================================================
+  */
 
-        if (
-          result &&
-          result.success === true &&
-          result.found === false
-        ) {
+  const vehicleParts = [];
 
+  if (
+    detectedVehicle.year
+  ) {
 
-          statusText.textContent =
-            "Point at VIN";
-
-
-          if (
-            result.visionText
-          ) {
-
-
-            detailsText.textContent =
-              "Vision saw: " +
-              result.visionText;
-
-
-          }
-
-          else if (
-            result.ocr
-          ) {
-
-
-            detailsText.textContent =
-              "Vision saw: " +
-              result.ocr;
-
-
-          }
-
-          else {
-
-
-            detailsText.textContent =
-              "Vision found no text";
-
-
-          }
-
-        }
-
-
-        else if (
-          result &&
-          result.success === false
-        ) {
-
-
-          statusText.textContent =
-            "Backend error";
-
-
-          detailsText.textContent =
-            result.error ||
-            "Unknown backend error";
-
-
-        }
-
-
-      }
-
-      catch (error) {
-
-
-        console.error(
-          "SCANNER ERROR:",
-          error
-        );
-
-
-        statusText.textContent =
-          "Scanner error";
-
-
-        detailsText.textContent =
-          error.message ||
-          String(error);
-
-
-      }
-
-
-      scheduleNextScan(
-        SCAN_INTERVAL
-      );
-
-    }
-
-
-
-    /*
-    ====================================================
-    SCHEDULE NEXT SCAN
-    ====================================================
-    */
-
-
-    function scheduleNextScan(
-      delay
-    ) {
-
-
-      clearTimeout(
-        timer
-      );
-
-
-      timer =
-        setTimeout(
-
-          scanFrame,
-
-          delay
-
-        );
-
-    }
-
-
-
-    /*
-    ====================================================
-    VIN DETECTED
-    ====================================================
-    */
-
-
-    async function lockVin(
-      vin
-    ) {
-
-
-      locked =
-        true;
-
-
-      scanning =
-        false;
-
-
-      detectedVin =
-        vin;
-
-
-      clearTimeout(
-        timer
-      );
-
-
-      statusText.textContent =
-        "VIN DETECTED ✓";
-
-
-      resultText.textContent =
-        vin;
-
-
-     detailsText.textContent =
-  "Looking up vehicle...";
-
-
-try {
-
-  const vehicle =
-    await decodeVin(vin);
-
-
-  const year =
-    vehicle.year || "Unknown Year";
-
-  const make =
-    vehicle.make || "Unknown Make";
-
-  const model =
-    vehicle.model || "Unknown Model";
-
-
-  detailsText.textContent =
-    year +
-    " • " +
-    make +
-    " • " +
-    model;
-
-}
-
-catch (error) {
-
-  console.error(
-    "VIN DECODE ERROR:",
-    error
-  );
-
-
-  detailsText.textContent =
-    "VIN detected - vehicle details unavailable";
-
-}
-
-
-      scanArea.style.borderColor =
-        "#00ff66";
-
-
-      restartButton.style.display =
-        "block";
-
-
-      addInventoryButton.style.display =
-        "block";
-
-
-      if (
-        navigator.vibrate
-      ) {
-
-
-        navigator.vibrate(
-          [
-            100,
-            60,
-            100
-          ]
-        );
-
-
-      }
-
-    }
-
-
-
-    /*
-    ====================================================
-    SCAN AGAIN
-    ====================================================
-    */
-
-
-    restartButton.addEventListener(
-
-      "click",
-
-      function() {
-
-
-        locked =
-          false;
-
-
-        scanning =
-          true;
-
-
-        detectedVin =
-          "";
-
-
-        resultText.textContent =
-          "";
-
-
-        detailsText.textContent =
-          "Cloud Vision scanner ready";
-
-
-        statusText.textContent =
-          "Point at VIN";
-
-
-        restartButton.style.display =
-          "none";
-
-
-        addInventoryButton.style.display =
-          "none";
-
-
-        scheduleNextScan(
-          300
-        );
-
-
-      }
-
+    vehicleParts.push(
+      detectedVehicle.year
     );
 
+  }
 
+  if (
+    detectedVehicle.make
+  ) {
+
+    vehicleParts.push(
+      detectedVehicle.make
+    );
+
+  }
+
+  if (
+    detectedVehicle.model
+  ) {
+
+    vehicleParts.push(
+      detectedVehicle.model
+    );
+
+  }
+
+
+  if (
+    vehicleParts.length > 0
+  ) {
+
+    vehicleInfo.textContent =
+      vehicleParts.join(" • ");
+
+    vehicleInfo.style.display =
+      "block";
+
+    detailsText.textContent =
+      "Verify vehicle information before adding";
+
+  }
+
+  else {
+
+    vehicleInfo.textContent =
+      "Vehicle details unavailable";
+
+    vehicleInfo.style.display =
+      "block";
+
+    detailsText.textContent =
+      "VIN detected successfully";
+
+  }
+
+
+  /*
+  ====================================================
+  SHOW BUTTONS
+  ====================================================
+  */
+
+  restartButton.style.display =
+    "block";
+
+  addInventoryButton.style.display =
+    "block";
+
+
+  /*
+  ====================================================
+  VIBRATE
+  ====================================================
+  */
+
+  if (
+    navigator.vibrate
+  ) {
+
+    navigator.vibrate(
+      [
+        100,
+        60,
+        100
+      ]
+    );
+
+  }
+
+}
+
+
+/*
+====================================================
+SCAN AGAIN
+====================================================
+*/
+
+restartButton.addEventListener(
+
+  "click",
+
+  function() {
+
+    locked = false;
+
+    scanning = true;
+
+    detectedVehicle = {
+      vin: "",
+      year: "",
+      make: "",
+      model: ""
+    };
+
+    resultText.textContent = "";
+
+    vehicleInfo.textContent = "";
+
+    vehicleInfo.style.display =
+      "none";
+
+    detailsText.textContent =
+      "Cloud Vision scanner ready";
+
+    statusText.textContent =
+      "Point at VIN";
+
+    restartButton.style.display =
+      "none";
+
+    addInventoryButton.style.display =
+      "none";
+
+    scheduleNextScan(300);
+
+  }
+
+);
+
+
+/*
+====================================================
+ADD TO INVENTORY
+====================================================
+*/
+
+addInventoryButton.addEventListener(
+
+  "click",
+
+  function() {
+
+    if (
+      !detectedVehicle.vin
+    ) {
+
+      return;
+
+    }
 
     /*
-    ====================================================
-    ADD TO INVENTORY
-    ====================================================
+    For now we keep the information visible.
 
     NEXT STEP:
-    Decode VIN -> Year / Make / Model
-    Then open AppSheet form with all 4 values.
-    ====================================================
+    Open AppSheet with:
+
+    VIN
+    Year
+    Make
+    Model
     */
 
+    statusText.textContent =
+      "VEHICLE READY ✓";
 
-    addInventoryButton.addEventListener(
+  }
 
-      "click",
-
-      function() {
-
-
-        if (
-          !detectedVin
-        ) {
-
-          return;
-
-        }
+);
 
 
-        statusText.textContent =
-          "VIN READY ✓";
+/*
+====================================================
+START
+====================================================
+*/
 
+window.addEventListener(
+  "load",
+  startCamera
+);
 
-        detailsText.textContent =
-          "Next: connect vehicle information to inventory";
-
-
-      }
-
-    );
-
-
-
-    /*
-    ====================================================
-    START
-    ====================================================
-    */
-
-
-    window.addEventListener(
-
-      "load",
-
-      startCamera
-
-    );
-
-
-  </script>
-
+</script>
 
 </body>
-
 </html>

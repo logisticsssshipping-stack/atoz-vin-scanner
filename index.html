@@ -1216,33 +1216,83 @@ addInventoryButton.addEventListener(
 
   function() {
 
-    if (
-      !detectedVehicle.vin
-    ) {
-
+    if (!detectedVehicle.vin) {
       return;
-
     }
 
+
     /*
-    For now we keep the information visible.
-
-    NEXT STEP:
-    Open AppSheet with:
-
-    VIN
-    Year
-    Make
-    Model
+    ================================================
+    VEHICLE VALUES TO PREFILL
+    ================================================
     */
 
+    const defaults = {
+
+      "VIN":
+        detectedVehicle.vin,
+
+      "Year":
+        detectedVehicle.year,
+
+      "Make":
+        detectedVehicle.make,
+
+      "Model":
+        detectedVehicle.model
+
+    };
+
+
+    /*
+    ================================================
+    BUILD APPSHEET FORM URL
+    ================================================
+    */
+
+    const appUrl =
+
+      "https://www.appsheet.com/start/" +
+
+      APPSHEET_APP_ID +
+
+      "#control=" +
+
+      encodeURIComponent(
+        APPSHEET_FORM_VIEW
+      ) +
+
+      "&defaults=" +
+
+      encodeURIComponent(
+        JSON.stringify(defaults)
+      ) +
+
+      "&page=form";
+
+
+    console.log(
+      "OPENING APPSHEET:",
+      appUrl
+    );
+
+
     statusText.textContent =
-      "VEHICLE READY ✓";
+      "Opening inventory form...";
+
+
+    /*
+    ================================================
+    OPEN APPSHEET
+    ================================================
+    */
+
+    window.location.href =
+      appUrl;
 
   }
 
 );
-
 
 /*
 ====================================================

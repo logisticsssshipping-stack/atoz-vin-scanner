@@ -1,253 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width,
-             initial-scale=1.0,
-             maximum-scale=1.0,
-             user-scalable=no"
-  >
-
-  <title>A-to-Z VIN Scanner</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: Arial, sans-serif;
-    }
-
-    #camera {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: #000;
-    }
-
-    #overlay {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      pointer-events: none;
-    }
-
-    #header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-
-      padding:
-        calc(18px + env(safe-area-inset-top))
-        15px
-        18px;
-
-      text-align: center;
-      color: white;
-
-      background:
-        linear-gradient(
-          to bottom,
-          rgba(0,0,0,0.80),
-          rgba(0,0,0,0)
-        );
-    }
-
-    #title {
-      font-size: 21px;
-      font-weight: 700;
-    }
-
-    #subtitle {
-      margin-top: 6px;
-      font-size: 14px;
-      opacity: 0.85;
-    }
-
-    #scanArea {
-      position: absolute;
-      left: 4%;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 92%;
-      height: 90px;
-
-      border: 3px solid #00ff66;
-      border-radius: 12px;
-
-      box-shadow:
-        0 0 0 9999px rgba(0,0,0,0.32),
-        0 0 20px rgba(0,255,102,0.35);
-    }
-
-    #scanArea::before {
-      content: "";
-      position: absolute;
-      left: 4%;
-      right: 4%;
-      top: 50%;
-      height: 2px;
-      transform: translateY(-50%);
-      background: #00ff66;
-      box-shadow: 0 0 10px #00ff66;
-    }
-
-    #bottomPanel {
-      position: absolute;
-      left: 12px;
-      right: 12px;
-
-      bottom:
-        calc(
-          20px +
-          env(safe-area-inset-bottom)
-        );
-
-      padding: 18px;
-      border-radius: 16px;
-      background: rgba(0,0,0,0.78);
-      color: white;
-      text-align: center;
-      pointer-events: auto;
-    }
-
-    #status {
-      font-size: 17px;
-      font-weight: 700;
-    }
-
-    #result {
-      margin-top: 10px;
-      min-height: 30px;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      color: #00ff66;
-      word-break: break-all;
-    }
-
-    #vehicleInfo {
-      display: none;
-      margin-top: 8px;
-      font-size: 17px;
-      line-height: 1.4;
-      font-weight: 700;
-      color: white;
-    }
-
-    #details {
-      margin-top: 7px;
-      font-size: 12px;
-      opacity: 0.75;
-      word-break: break-word;
-      max-height: 100px;
-      overflow: hidden;
-    }
-
-    #restartButton {
-      display: none;
-      width: 100%;
-      margin-top: 15px;
-      padding: 14px;
-      border: 0;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      background: white;
-      color: black;
-      cursor: pointer;
-    }
-
-    #addInventoryButton {
-      display: none;
-      width: 100%;
-      margin-top: 10px;
-      padding: 14px;
-      border: 0;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      background: #00ff66;
-      color: #000;
-      cursor: pointer;
-    }
-
-    #captureCanvas {
-      display: none;
-    }
-  </style>
-</head>
-
-
-<body>
-
-  <video
-    id="camera"
-    autoplay
-    playsinline
-    muted
-  ></video>
-
-  <canvas id="captureCanvas"></canvas>
-
-  <div id="overlay">
-
-    <div id="header">
-
-      <div id="title">
-        A-to-Z VIN Scanner
-      </div>
-
-      <div id="subtitle">
-        Place the full 17-character VIN inside the green box
-      </div>
-
-    </div>
-
-    <div id="scanArea"></div>
-
-    <div id="bottomPanel">
-
-      <div id="status">
-        Starting camera...
-      </div>
-
-      <div id="result"></div>
-
-      <div id="vehicleInfo"></div>
-
-      <div id="details"></div>
-
-      <button id="restartButton">
-        SCAN AGAIN
-      </button>
-
-      <button id="addInventoryButton">
-        ADD TO INVENTORY
-      </button>
-
-    </div>
-
-  </div>
-
-
 <script>
 
 /*
@@ -352,6 +102,7 @@ async function startCamera() {
 
     }
 
+
     const constraints = {
 
       audio: false,
@@ -373,6 +124,7 @@ async function startCamera() {
       }
 
     };
+
 
     cameraStream =
       await navigator.mediaDevices.getUserMedia(
@@ -489,6 +241,7 @@ async function tryCameraEnhancements(
 
     const advanced = {};
 
+
     if (
       capabilities.focusMode &&
       capabilities.focusMode.includes(
@@ -500,6 +253,7 @@ async function tryCameraEnhancements(
         "continuous";
 
     }
+
 
     if (
       capabilities.exposureMode &&
@@ -513,6 +267,7 @@ async function tryCameraEnhancements(
 
     }
 
+
     if (
       capabilities.whiteBalanceMode &&
       capabilities.whiteBalanceMode.includes(
@@ -524,6 +279,7 @@ async function tryCameraEnhancements(
         "continuous";
 
     }
+
 
     if (
       Object.keys(advanced).length > 0
@@ -573,6 +329,7 @@ function captureVinArea() {
   const sourceHeight =
     video.videoHeight;
 
+
   if (
     !sourceWidth ||
     !sourceHeight
@@ -583,6 +340,7 @@ function captureVinArea() {
     );
 
   }
+
 
   const scale =
     Math.max(
@@ -595,11 +353,13 @@ function captureVinArea() {
 
     );
 
+
   const displayedWidth =
     sourceWidth * scale;
 
   const displayedHeight =
     sourceHeight * scale;
+
 
   const offsetX =
     (
@@ -613,12 +373,14 @@ function captureVinArea() {
       videoRect.height
     ) / 2;
 
+
   let x =
     (
       scanRect.left -
       videoRect.left +
       offsetX
     ) / scale;
+
 
   let y =
     (
@@ -627,19 +389,23 @@ function captureVinArea() {
       offsetY
     ) / scale;
 
+
   let width =
     scanRect.width /
     scale;
 
+
   let height =
     scanRect.height /
     scale;
+
 
   const horizontalPadding =
     width * 0.04;
 
   const verticalPadding =
     height * 0.15;
+
 
   x -= horizontalPadding;
 
@@ -651,11 +417,13 @@ function captureVinArea() {
   height +=
     verticalPadding * 2;
 
+
   x =
     Math.max(
       0,
       x
     );
+
 
   y =
     Math.max(
@@ -663,11 +431,13 @@ function captureVinArea() {
       y
     );
 
+
   width =
     Math.min(
       width,
       sourceWidth - x
     );
+
 
   height =
     Math.min(
@@ -675,7 +445,9 @@ function captureVinArea() {
       sourceHeight - y
     );
 
+
   const targetWidth = 1400;
+
 
   const outputScale =
     Math.max(
@@ -683,24 +455,29 @@ function captureVinArea() {
       targetWidth / width
     );
 
+
   canvas.width =
     Math.round(
       width * outputScale
     );
+
 
   canvas.height =
     Math.round(
       height * outputScale
     );
 
+
   const ctx =
     canvas.getContext("2d");
+
 
   ctx.imageSmoothingEnabled =
     true;
 
   ctx.imageSmoothingQuality =
     "high";
+
 
   ctx.drawImage(
 
@@ -719,6 +496,7 @@ function captureVinArea() {
     canvas.height
 
   );
+
 
   return canvas.toDataURL(
     "image/jpeg",
@@ -769,6 +547,7 @@ async function sendImage(
 
     );
 
+
   if (!response.ok) {
 
     throw new Error(
@@ -778,8 +557,10 @@ async function sendImage(
 
   }
 
+
   const text =
     await response.text();
+
 
   try {
 
@@ -842,16 +623,20 @@ async function scanFrame() {
 
   }
 
+
   try {
 
     statusText.textContent =
       "Reading VIN...";
 
+
     const image =
       captureVinArea();
 
+
     const result =
       await sendImage(image);
+
 
     console.log(
       "BACKEND RESULT:",
@@ -860,9 +645,9 @@ async function scanFrame() {
 
 
     /*
-    ====================================================
+    ================================================
     VIN FOUND
-    ====================================================
+    ================================================
     */
 
     if (
@@ -880,9 +665,9 @@ async function scanFrame() {
 
 
     /*
-    ====================================================
+    ================================================
     NO VIN FOUND
-    ====================================================
+    ================================================
     */
 
     if (
@@ -893,6 +678,7 @@ async function scanFrame() {
 
       statusText.textContent =
         "Point at VIN";
+
 
       if (
         result.visionText
@@ -925,9 +711,9 @@ async function scanFrame() {
 
 
     /*
-    ====================================================
+    ================================================
     BACKEND ERROR
-    ====================================================
+    ================================================
     */
 
     else if (
@@ -961,6 +747,7 @@ async function scanFrame() {
       String(error);
 
   }
+
 
   scheduleNextScan(
     SCAN_INTERVAL
@@ -1008,9 +795,9 @@ function lockVin(
 
 
   /*
-  ====================================================
+  ================================================
   SAVE ALL BACKEND INFORMATION
-  ====================================================
+  ================================================
   */
 
   detectedVehicle = {
@@ -1039,9 +826,9 @@ function lockVin(
 
 
   /*
-  ====================================================
+  ================================================
   SHOW VIN
-  ====================================================
+  ================================================
   */
 
   statusText.textContent =
@@ -1052,12 +839,13 @@ function lockVin(
 
 
   /*
-  ====================================================
+  ================================================
   SHOW YEAR + MAKE + MODEL
-  ====================================================
+  ================================================
   */
 
   const vehicleParts = [];
+
 
   if (
     detectedVehicle.year
@@ -1069,6 +857,7 @@ function lockVin(
 
   }
 
+
   if (
     detectedVehicle.make
   ) {
@@ -1078,6 +867,7 @@ function lockVin(
     );
 
   }
+
 
   if (
     detectedVehicle.model
@@ -1120,9 +910,9 @@ function lockVin(
 
 
   /*
-  ====================================================
+  ================================================
   SHOW BUTTONS
-  ====================================================
+  ================================================
   */
 
   restartButton.style.display =
@@ -1133,9 +923,9 @@ function lockVin(
 
 
   /*
-  ====================================================
+  ================================================
   VIBRATE
-  ====================================================
+  ================================================
   */
 
   if (
@@ -1171,12 +961,14 @@ restartButton.addEventListener(
 
     scanning = true;
 
+
     detectedVehicle = {
       vin: "",
       year: "",
       make: "",
       model: ""
     };
+
 
     resultText.textContent = "";
 
@@ -1185,17 +977,20 @@ restartButton.addEventListener(
     vehicleInfo.style.display =
       "none";
 
+
     detailsText.textContent =
       "Cloud Vision scanner ready";
 
     statusText.textContent =
       "Point at VIN";
 
+
     restartButton.style.display =
       "none";
 
     addInventoryButton.style.display =
       "none";
+
 
     scheduleNextScan(300);
 
@@ -1223,7 +1018,7 @@ addInventoryButton.addEventListener(
 
     /*
     ================================================
-    VEHICLE VALUES TO PREFILL
+    BUILD APPSHEET DEFAULT VALUES
     ================================================
     */
 
@@ -1246,7 +1041,7 @@ addInventoryButton.addEventListener(
 
     /*
     ================================================
-    BUILD APPSHEET FORM URL
+    BUILD VERIFIED APPSHEET LINKTOFORM URL
     ================================================
     */
 
@@ -1266,9 +1061,7 @@ addInventoryButton.addEventListener(
 
       encodeURIComponent(
         JSON.stringify(defaults)
-      ) +
-
-      "&page=form";
+      );
 
 
     console.log(
@@ -1279,6 +1072,25 @@ addInventoryButton.addEventListener(
 
     statusText.textContent =
       "Opening inventory form...";
+
+
+    /*
+    ================================================
+    STOP CAMERA BEFORE LEAVING
+    ================================================
+    */
+
+    if (cameraStream) {
+
+      cameraStream
+        .getTracks()
+        .forEach(
+          function(track) {
+            track.stop();
+          }
+        );
+
+    }
 
 
     /*
@@ -1294,6 +1106,7 @@ addInventoryButton.addEventListener(
 
 );
 
+
 /*
 ====================================================
 START
@@ -1306,6 +1119,3 @@ window.addEventListener(
 );
 
 </script>
-
-</body>
-</html>

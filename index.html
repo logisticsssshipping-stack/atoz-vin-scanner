@@ -1440,7 +1440,6 @@ function lockVin(
     navigator.vibrate
   ) {
 
-
     navigator.vibrate(
       [
         100,
@@ -1449,8 +1448,47 @@ function lockVin(
       ]
     );
 
-
   }
+
+
+  /*
+  ================================================
+  OPEN APPSHEET NEW VEHICLE FORM
+  ================================================
+  */
+
+  const defaults = {
+    "VIN": vin
+  };
+
+
+  const appUrl =
+    "https://www.appsheet.com/start/" +
+    APPSHEET_APP_ID +
+    "#control=" +
+    encodeURIComponent(
+      APPSHEET_FORM_VIEW
+    ) +
+    "&defaults=" +
+    encodeURIComponent(
+      JSON.stringify(defaults)
+    ) +
+    "&page=form";
+
+
+  detailsText.textContent =
+    "Opening vehicle form...";
+
+
+  setTimeout(
+    function() {
+
+      window.location.href =
+        appUrl;
+
+    },
+    700
+  );
 
 }
 

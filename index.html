@@ -1161,7 +1161,55 @@
         ) {
 
 
-          lockVin(
+          /*
+====================================================
+DECODE VIN - NHTSA
+====================================================
+*/
+
+async function decodeVin(vin) {
+
+  const url =
+    "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/" +
+    encodeURIComponent(vin) +
+    "?format=json";
+
+  const response =
+    await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("VIN decoder failed");
+  }
+
+  const data =
+    await response.json();
+
+  if (
+    !data.Results ||
+    !data.Results.length
+  ) {
+    throw new Error("No vehicle data found");
+  }
+
+  const vehicle =
+    data.Results[0];
+
+  return {
+
+    year:
+      vehicle.ModelYear || "",
+
+    make:
+      vehicle.Make || "",
+
+    model:
+      vehicle.Model || ""
+
+  };
+
+}
+
+         lockVin(
             result.vin
           );
 
@@ -1304,7 +1352,7 @@
     */
 
 
-    function lockVin(
+    async function lockVin(
       vin
     ) {
 
@@ -1334,8 +1382,47 @@
         vin;
 
 
-      detailsText.textContent =
-        "Cloud Vision verified 17-character VIN";
+     detailsText.textContent =
+  "Looking up vehicle...";
+
+
+try {
+
+  const vehicle =
+    await decodeVin(vin);
+
+
+  const year =
+    vehicle.year || "Unknown Year";
+
+  const make =
+    vehicle.make || "Unknown Make";
+
+  const model =
+    vehicle.model || "Unknown Model";
+
+
+  detailsText.textContent =
+    year +
+    " • " +
+    make +
+    " • " +
+    model;
+
+}
+
+catch (error) {
+
+  console.error(
+    "VIN DECODE ERROR:",
+    error
+  );
+
+
+  detailsText.textContent =
+    "VIN detected - vehicle details unavailable";
+
+}
 
 
       scanArea.style.borderColor =

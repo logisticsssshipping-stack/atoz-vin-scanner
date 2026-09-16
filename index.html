@@ -35,9 +35,7 @@
 
       background: #000;
 
-      font-family:
-        Arial,
-        sans-serif;
+      font-family: Arial, sans-serif;
 
     }
 
@@ -130,15 +128,13 @@
 
       top: 50%;
 
-      transform:
-        translateY(-50%);
+      transform: translateY(-50%);
 
       width: 92%;
 
       height: 90px;
 
-      border:
-        3px solid #00ff66;
+      border: 3px solid #00ff66;
 
       border-radius: 12px;
 
@@ -162,13 +158,11 @@
 
       height: 2px;
 
-      transform:
-        translateY(-50%);
+      transform: translateY(-50%);
 
       background: #00ff66;
 
-      box-shadow:
-        0 0 10px #00ff66;
+      box-shadow: 0 0 10px #00ff66;
 
     }
 
@@ -190,8 +184,7 @@
 
       border-radius: 16px;
 
-      background:
-        rgba(0,0,0,0.78);
+      background: rgba(0,0,0,0.78);
 
       color: white;
 
@@ -274,36 +267,39 @@
     }
 
 
+    #addInventoryButton {
+
+      display: none;
+
+      width: 100%;
+
+      margin-top: 10px;
+
+      padding: 14px;
+
+      border: 0;
+
+      border-radius: 10px;
+
+      font-size: 16px;
+
+      font-weight: 700;
+
+      background: #00ff66;
+
+      color: #000;
+
+      cursor: pointer;
+
+    }
+
+
     #captureCanvas {
 
       display: none;
 
     }
-#addInventoryButton {
 
-  display: none;
-
-  width: 100%;
-
-  margin-top: 10px;
-
-  padding: 14px;
-
-  border: 0;
-
-  border-radius: 10px;
-
-  font-size: 16px;
-
-  font-weight: 700;
-
-  background: #00ff66;
-
-  color: #000;
-
-  cursor: pointer;
-
-}
   </style>
 
 </head>
@@ -355,13 +351,16 @@
 
       <div id="details"></div>
 
-    <button id="restartButton">
-  SCAN AGAIN
-</button>
 
-<button id="addInventoryButton">
-  ADD TO INVENTORY
-</button>
+      <button id="restartButton">
+        SCAN AGAIN
+      </button>
+
+
+      <button id="addInventoryButton">
+        ADD TO INVENTORY
+      </button>
+
     </div>
 
 
@@ -369,1230 +368,1124 @@
 
 
 
-<script>
-
-
-/*
-====================================================
-CONFIGURATION
-====================================================
-*/
-
-
-const BACKEND_URL =
-  "https://script.google.com/macros/s/AKfycbxeFrEttl7fh8lmSzBJGO852xYTTsV5BrjHssoj2IK4biAhJLApLMs1qUIbbAlsbHWXsw/exec";
-
-
-const SCAN_INTERVAL =
-  250;
-
-
-const JPEG_QUALITY =
-  0.88;
-const APPSHEET_APP_ID =
-  "c9b42286-9e3c-4647-a376-6b7823b93237";
-
-const APPSHEET_FORM_VIEW =
-  "A-to-Z Yard Inventory V1_Form";
-
-
-/*
-====================================================
-ELEMENTS
-====================================================
-*/
-
-
-const video =
-  document.getElementById(
-    "camera"
-  );
-
-
-const canvas =
-  document.getElementById(
-    "captureCanvas"
-  );
-
-
-const scanArea =
-  document.getElementById(
-    "scanArea"
-  );
-
-
-const statusText =
-  document.getElementById(
-    "status"
-  );
-
-
-const resultText =
-  document.getElementById(
-    "result"
-  );
-
-
-const detailsText =
-  document.getElementById(
-    "details"
-  );
-
-
-const restartButton =
-  document.getElementById(
-    "restartButton"
-  );
-
-const addInventoryButton =
-  document.getElementById(
-    "addInventoryButton"
-  );
-
-let scanning =
-  false;
-
-
-let locked =
-  false;
-
-
-let timer =
-  null;
-
-
-let cameraStream =
-  null;
-
-
-
-/*
-====================================================
-START CAMERA
-====================================================
-*/
-
-
-async function startCamera() {
-
-  try {
-
-
-    statusText.textContent =
-      "Opening camera...";
-
-
-    detailsText.textContent =
-      "";
+  <script>
 
 
     /*
-    ------------------------------------------------
-    Browser support check
-    ------------------------------------------------
+    ====================================================
+    CONFIGURATION
+    ====================================================
     */
 
 
-    if (
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
+    const BACKEND_URL =
+      "https://script.google.com/macros/s/AKfycbxeFrEttl7fh8lmSzBJGO852xYTTsV5BrjHssoj2IK4biAhJLApLMs1qUIbbAlsbHWXsw/exec";
 
-      throw new Error(
-        "Camera is not supported by this browser."
+
+    const SCAN_INTERVAL =
+      250;
+
+
+    const JPEG_QUALITY =
+      0.88;
+
+
+    const APPSHEET_APP_ID =
+      "c9b42286-9e3c-4647-a376-6b7823b93237";
+
+
+    const APPSHEET_FORM_VIEW =
+      "A-to-Z Yard Inventory V1_Form";
+
+
+
+    /*
+    ====================================================
+    ELEMENTS
+    ====================================================
+    */
+
+
+    const video =
+      document.getElementById(
+        "camera"
+      );
+
+
+    const canvas =
+      document.getElementById(
+        "captureCanvas"
+      );
+
+
+    const scanArea =
+      document.getElementById(
+        "scanArea"
+      );
+
+
+    const statusText =
+      document.getElementById(
+        "status"
+      );
+
+
+    const resultText =
+      document.getElementById(
+        "result"
+      );
+
+
+    const detailsText =
+      document.getElementById(
+        "details"
+      );
+
+
+    const restartButton =
+      document.getElementById(
+        "restartButton"
+      );
+
+
+    const addInventoryButton =
+      document.getElementById(
+        "addInventoryButton"
+      );
+
+
+
+    /*
+    ====================================================
+    STATE
+    ====================================================
+    */
+
+
+    let scanning =
+      false;
+
+
+    let locked =
+      false;
+
+
+    let timer =
+      null;
+
+
+    let cameraStream =
+      null;
+
+
+    let detectedVin =
+      "";
+
+
+
+    /*
+    ====================================================
+    START CAMERA
+    ====================================================
+    */
+
+
+    async function startCamera() {
+
+      try {
+
+
+        statusText.textContent =
+          "Opening camera...";
+
+
+        detailsText.textContent =
+          "";
+
+
+        if (
+          !navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia
+        ) {
+
+          throw new Error(
+            "Camera is not supported by this browser."
+          );
+
+        }
+
+
+        const constraints = {
+
+          audio: false,
+
+          video: {
+
+            facingMode: {
+              ideal: "environment"
+            },
+
+            width: {
+              ideal: 1920
+            },
+
+            height: {
+              ideal: 1080
+            }
+
+          }
+
+        };
+
+
+        cameraStream =
+          await navigator.mediaDevices
+            .getUserMedia(
+              constraints
+            );
+
+
+        video.srcObject =
+          cameraStream;
+
+
+        await video.play();
+
+
+        await waitForVideo();
+
+
+        await tryCameraEnhancements(
+          cameraStream
+        );
+
+
+        statusText.textContent =
+          "Point at VIN";
+
+
+        detailsText.textContent =
+          "Cloud Vision scanner ready";
+
+
+        scanning =
+          true;
+
+
+        locked =
+          false;
+
+
+        scheduleNextScan(
+          500
+        );
+
+
+      }
+
+      catch (error) {
+
+
+        console.error(
+          "CAMERA ERROR:",
+          error
+        );
+
+
+        statusText.textContent =
+          "Camera error";
+
+
+        detailsText.textContent =
+          error.message ||
+          String(error);
+
+
+      }
+
+    }
+
+
+
+    /*
+    ====================================================
+    WAIT FOR CAMERA
+    ====================================================
+    */
+
+
+    function waitForVideo() {
+
+      return new Promise(
+        function(resolve) {
+
+
+          if (
+            video.videoWidth > 0 &&
+            video.videoHeight > 0
+          ) {
+
+            resolve();
+
+            return;
+
+          }
+
+
+          video.addEventListener(
+            "loadedmetadata",
+
+            function() {
+
+              resolve();
+
+            },
+
+            {
+              once: true
+            }
+
+          );
+
+
+        }
       );
 
     }
 
 
+
     /*
-    ------------------------------------------------
-    Camera request
-    ------------------------------------------------
+    ====================================================
+    CAMERA ENHANCEMENTS
+    ====================================================
     */
 
 
-    const constraints = {
+    async function tryCameraEnhancements(
+      stream
+    ) {
 
-      audio: false,
+      try {
 
-      video: {
 
-        facingMode: {
-          ideal: "environment"
-        },
+        const track =
+          stream.getVideoTracks()[0];
 
-        width: {
-          ideal: 1920
-        },
 
-        height: {
-          ideal: 1080
+        if (!track) {
+
+          return;
+
         }
+
+
+        const capabilities =
+          track.getCapabilities
+            ? track.getCapabilities()
+            : {};
+
+
+        const advanced =
+          {};
+
+
+        if (
+          capabilities.focusMode &&
+          capabilities.focusMode.includes(
+            "continuous"
+          )
+        ) {
+
+          advanced.focusMode =
+            "continuous";
+
+        }
+
+
+        if (
+          capabilities.exposureMode &&
+          capabilities.exposureMode.includes(
+            "continuous"
+          )
+        ) {
+
+          advanced.exposureMode =
+            "continuous";
+
+        }
+
+
+        if (
+          capabilities.whiteBalanceMode &&
+          capabilities.whiteBalanceMode.includes(
+            "continuous"
+          )
+        ) {
+
+          advanced.whiteBalanceMode =
+            "continuous";
+
+        }
+
+
+        if (
+          Object.keys(
+            advanced
+          ).length > 0
+        ) {
+
+          await track.applyConstraints({
+
+            advanced: [
+              advanced
+            ]
+
+          });
+
+        }
+
 
       }
 
-    };
+      catch (error) {
 
 
-    cameraStream =
-      await navigator.mediaDevices
-        .getUserMedia(
-          constraints
+        console.log(
+          "Camera enhancement skipped:",
+          error
         );
 
 
-    video.srcObject =
-      cameraStream;
+      }
 
+    }
 
-    await video.play();
-
-
-    await waitForVideo();
-
-
-    await tryCameraEnhancements(
-      cameraStream
-    );
 
 
     /*
-    ------------------------------------------------
-    Scanner ready
-    ------------------------------------------------
+    ====================================================
+    CAPTURE GREEN BOX
+    ====================================================
     */
 
 
-    statusText.textContent =
-      "Point at VIN";
+    function captureVinArea() {
 
 
-    detailsText.textContent =
-      "Cloud Vision scanner ready";
+      const videoRect =
+        video.getBoundingClientRect();
 
 
-    scanning =
-      true;
+      const scanRect =
+        scanArea.getBoundingClientRect();
 
 
-    locked =
-      false;
+      const sourceWidth =
+        video.videoWidth;
 
 
-    scheduleNextScan(
-      500
-    );
-
-
-  }
-
-  catch (error) {
-
-
-    console.error(
-      "CAMERA ERROR:",
-      error
-    );
-
-
-    statusText.textContent =
-      "Camera error";
-
-
-    detailsText.textContent =
-      error.message ||
-      String(error);
-
-
-  }
-
-}
-
-
-
-/*
-====================================================
-WAIT FOR CAMERA DIMENSIONS
-====================================================
-*/
-
-
-function waitForVideo() {
-
-  return new Promise(
-    function(resolve) {
+      const sourceHeight =
+        video.videoHeight;
 
 
       if (
-        video.videoWidth > 0 &&
-        video.videoHeight > 0
+        !sourceWidth ||
+        !sourceHeight
       ) {
 
-        resolve();
+        throw new Error(
+          "Camera not ready."
+        );
+
+      }
+
+
+      const scale =
+        Math.max(
+
+          videoRect.width /
+            sourceWidth,
+
+          videoRect.height /
+            sourceHeight
+
+        );
+
+
+      const displayedWidth =
+        sourceWidth *
+        scale;
+
+
+      const displayedHeight =
+        sourceHeight *
+        scale;
+
+
+      const offsetX =
+        (
+          displayedWidth -
+          videoRect.width
+        ) / 2;
+
+
+      const offsetY =
+        (
+          displayedHeight -
+          videoRect.height
+        ) / 2;
+
+
+      let x =
+        (
+          scanRect.left -
+          videoRect.left +
+          offsetX
+        ) / scale;
+
+
+      let y =
+        (
+          scanRect.top -
+          videoRect.top +
+          offsetY
+        ) / scale;
+
+
+      let width =
+        scanRect.width /
+        scale;
+
+
+      let height =
+        scanRect.height /
+        scale;
+
+
+      const horizontalPadding =
+        width *
+        0.04;
+
+
+      const verticalPadding =
+        height *
+        0.15;
+
+
+      x -=
+        horizontalPadding;
+
+
+      y -=
+        verticalPadding;
+
+
+      width +=
+        horizontalPadding *
+        2;
+
+
+      height +=
+        verticalPadding *
+        2;
+
+
+      x =
+        Math.max(
+          0,
+          x
+        );
+
+
+      y =
+        Math.max(
+          0,
+          y
+        );
+
+
+      width =
+        Math.min(
+          width,
+          sourceWidth - x
+        );
+
+
+      height =
+        Math.min(
+          height,
+          sourceHeight - y
+        );
+
+
+      const targetWidth =
+        1400;
+
+
+      const outputScale =
+        Math.max(
+
+          1,
+
+          targetWidth /
+            width
+
+        );
+
+
+      canvas.width =
+        Math.round(
+          width *
+          outputScale
+        );
+
+
+      canvas.height =
+        Math.round(
+          height *
+          outputScale
+        );
+
+
+      const ctx =
+        canvas.getContext(
+          "2d"
+        );
+
+
+      ctx.imageSmoothingEnabled =
+        true;
+
+
+      ctx.imageSmoothingQuality =
+        "high";
+
+
+      ctx.drawImage(
+
+        video,
+
+        x,
+        y,
+
+        width,
+        height,
+
+        0,
+        0,
+
+        canvas.width,
+        canvas.height
+
+      );
+
+
+      return canvas.toDataURL(
+
+        "image/jpeg",
+
+        JPEG_QUALITY
+
+      );
+
+    }
+
+
+
+    /*
+    ====================================================
+    SEND IMAGE TO CLOUD VISION
+    ====================================================
+    */
+
+
+    async function sendImage(
+      imageData
+    ) {
+
+
+      const response =
+        await fetch(
+
+          BACKEND_URL,
+
+          {
+
+            method:
+              "POST",
+
+            headers: {
+
+              "Content-Type":
+                "text/plain;charset=utf-8"
+
+            },
+
+            body:
+              JSON.stringify({
+
+                action:
+                  "scanVin",
+
+                image:
+                  imageData
+
+              }),
+
+            redirect:
+              "follow"
+
+          }
+
+        );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Backend HTTP " +
+          response.status
+        );
+
+      }
+
+
+      const text =
+        await response.text();
+
+
+      try {
+
+        return JSON.parse(
+          text
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "INVALID BACKEND RESPONSE:",
+          text
+        );
+
+        throw new Error(
+          "Backend returned invalid JSON."
+        );
+
+      }
+
+    }
+
+
+
+    /*
+    ====================================================
+    LOCAL VIN VALIDATION
+    ====================================================
+    */
+
+
+    function isValidVin(
+      vin
+    ) {
+
+
+      return (
+
+        typeof vin ===
+          "string" &&
+
+        /^[A-HJ-NPR-Z0-9]{17}$/
+          .test(
+            vin
+          )
+
+      );
+
+    }
+
+
+
+    /*
+    ====================================================
+    AUTOMATIC SCANNER
+    ====================================================
+    */
+
+
+    async function scanFrame() {
+
+
+      if (
+        !scanning ||
+        locked
+      ) {
 
         return;
 
       }
 
 
-      video.addEventListener(
-        "loadedmetadata",
+      try {
 
-        function() {
 
-          resolve();
+        statusText.textContent =
+          "Reading VIN...";
 
-        },
 
-        {
-          once: true
+        const image =
+          captureVinArea();
+
+
+        const result =
+          await sendImage(
+            image
+          );
+
+
+        console.log(
+          "CLOUD VISION RESULT:",
+          result
+        );
+
+
+        if (
+          result &&
+          result.success === true &&
+          result.found === true &&
+          isValidVin(
+            result.vin
+          )
+        ) {
+
+
+          lockVin(
+            result.vin
+          );
+
+
+          return;
+
         }
 
-      );
 
+        if (
+          result &&
+          result.success === true &&
+          result.found === false
+        ) {
 
-    }
-  );
 
-}
+          statusText.textContent =
+            "Point at VIN";
 
 
+          if (
+            result.visionText
+          ) {
 
-/*
-====================================================
-CAMERA ENHANCEMENTS
-====================================================
-*/
 
+            detailsText.textContent =
+              "Vision saw: " +
+              result.visionText;
 
-async function tryCameraEnhancements(
-  stream
-) {
 
-  try {
+          }
 
+          else if (
+            result.ocr
+          ) {
 
-    const track =
-      stream.getVideoTracks()[0];
 
+            detailsText.textContent =
+              "Vision saw: " +
+              result.ocr;
 
-    if (!track) {
 
-      return;
+          }
 
-    }
+          else {
 
 
-    const capabilities =
-      track.getCapabilities
-        ? track.getCapabilities()
-        : {};
+            detailsText.textContent =
+              "Vision found no text";
 
 
-    const advanced =
-      {};
+          }
 
+        }
 
-    /*
-    ------------------------------------------------
-    Continuous focus
-    ------------------------------------------------
-    */
 
+        else if (
+          result &&
+          result.success === false
+        ) {
 
-    if (
-      capabilities.focusMode &&
-      capabilities.focusMode.includes(
-        "continuous"
-      )
-    ) {
 
-      advanced.focusMode =
-        "continuous";
+          statusText.textContent =
+            "Backend error";
 
-    }
 
+          detailsText.textContent =
+            result.error ||
+            "Unknown backend error";
 
-    /*
-    ------------------------------------------------
-    Continuous exposure
-    ------------------------------------------------
-    */
 
+        }
 
-    if (
-      capabilities.exposureMode &&
-      capabilities.exposureMode.includes(
-        "continuous"
-      )
-    ) {
-
-      advanced.exposureMode =
-        "continuous";
-
-    }
-
-
-    /*
-    ------------------------------------------------
-    Continuous white balance
-    ------------------------------------------------
-    */
-
-
-    if (
-      capabilities.whiteBalanceMode &&
-      capabilities.whiteBalanceMode.includes(
-        "continuous"
-      )
-    ) {
-
-      advanced.whiteBalanceMode =
-        "continuous";
-
-    }
-
-
-    if (
-      Object.keys(
-        advanced
-      ).length > 0
-    ) {
-
-      await track.applyConstraints({
-
-        advanced: [
-          advanced
-        ]
-
-      });
-
-    }
-
-
-  }
-
-  catch (error) {
-
-
-    console.log(
-      "Camera enhancement skipped:",
-      error
-    );
-
-
-  }
-
-}
-
-
-
-/*
-====================================================
-CAPTURE GREEN BOX
-====================================================
-*/
-
-
-function captureVinArea() {
-
-
-  const videoRect =
-    video.getBoundingClientRect();
-
-
-  const scanRect =
-    scanArea.getBoundingClientRect();
-
-
-  const sourceWidth =
-    video.videoWidth;
-
-
-  const sourceHeight =
-    video.videoHeight;
-
-
-
-  if (
-    !sourceWidth ||
-    !sourceHeight
-  ) {
-
-    throw new Error(
-      "Camera not ready."
-    );
-
-  }
-
-
-
-  /*
-  ------------------------------------------------
-  object-fit: cover calculations
-  ------------------------------------------------
-  */
-
-
-  const scale =
-    Math.max(
-
-      videoRect.width /
-        sourceWidth,
-
-      videoRect.height /
-        sourceHeight
-
-    );
-
-
-  const displayedWidth =
-    sourceWidth *
-    scale;
-
-
-  const displayedHeight =
-    sourceHeight *
-    scale;
-
-
-  const offsetX =
-    (
-      displayedWidth -
-      videoRect.width
-    ) / 2;
-
-
-  const offsetY =
-    (
-      displayedHeight -
-      videoRect.height
-    ) / 2;
-
-
-
-  /*
-  ------------------------------------------------
-  Convert green box to camera coordinates
-  ------------------------------------------------
-  */
-
-
-  let x =
-    (
-      scanRect.left -
-      videoRect.left +
-      offsetX
-    ) / scale;
-
-
-  let y =
-    (
-      scanRect.top -
-      videoRect.top +
-      offsetY
-    ) / scale;
-
-
-  let width =
-    scanRect.width /
-    scale;
-
-
-  let height =
-    scanRect.height /
-    scale;
-
-
-
-  /*
-  ------------------------------------------------
-  Small padding
-
-  Protect first and last VIN characters.
-  ------------------------------------------------
-  */
-
-
-  const horizontalPadding =
-    width *
-    0.04;
-
-
-  const verticalPadding =
-    height *
-    0.15;
-
-
-  x -=
-    horizontalPadding;
-
-
-  y -=
-    verticalPadding;
-
-
-  width +=
-    horizontalPadding *
-    2;
-
-
-  height +=
-    verticalPadding *
-    2;
-
-
-
-  /*
-  ------------------------------------------------
-  Clamp inside camera image
-  ------------------------------------------------
-  */
-
-
-  x =
-    Math.max(
-      0,
-      x
-    );
-
-
-  y =
-    Math.max(
-      0,
-      y
-    );
-
-
-  width =
-    Math.min(
-      width,
-      sourceWidth - x
-    );
-
-
-  height =
-    Math.min(
-      height,
-      sourceHeight - y
-    );
-
-
-
-  /*
-  ------------------------------------------------
-  Upscale crop for OCR
-  ------------------------------------------------
-  */
-
-
-  const targetWidth =
-    1400;
-
-
-  const outputScale =
-    Math.max(
-
-      1,
-
-      targetWidth /
-        width
-
-    );
-
-
-  canvas.width =
-    Math.round(
-      width *
-      outputScale
-    );
-
-
-  canvas.height =
-    Math.round(
-      height *
-      outputScale
-    );
-
-
-
-  const ctx =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  ctx.imageSmoothingEnabled =
-    true;
-
-
-  ctx.imageSmoothingQuality =
-    "high";
-
-
-  ctx.drawImage(
-
-    video,
-
-    x,
-    y,
-
-    width,
-    height,
-
-    0,
-    0,
-
-    canvas.width,
-    canvas.height
-
-  );
-
-
-  return canvas.toDataURL(
-
-    "image/jpeg",
-
-    JPEG_QUALITY
-
-  );
-
-}
-
-
-
-/*
-====================================================
-SEND IMAGE TO CLOUD VISION BACKEND
-====================================================
-*/
-
-
-async function sendImage(
-  imageData
-) {
-
-
-  const response =
-    await fetch(
-
-      BACKEND_URL,
-
-      {
-
-        method:
-          "POST",
-
-        headers: {
-
-          "Content-Type":
-            "text/plain;charset=utf-8"
-
-        },
-
-        body:
-          JSON.stringify({
-
-            action:
-              "scanVin",
-
-            image:
-              imageData
-
-          }),
-
-        redirect:
-          "follow"
 
       }
 
-    );
+      catch (error) {
 
 
-  if (!response.ok) {
-
-    throw new Error(
-      "Backend HTTP " +
-      response.status
-    );
-
-  }
+        console.error(
+          "SCANNER ERROR:",
+          error
+        );
 
 
-  const text =
-    await response.text();
+        statusText.textContent =
+          "Scanner error";
 
 
-  try {
-
-    return JSON.parse(
-      text
-    );
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "INVALID BACKEND RESPONSE:",
-      text
-    );
-
-    throw new Error(
-      "Backend returned invalid JSON."
-    );
-
-  }
-
-}
+        detailsText.textContent =
+          error.message ||
+          String(error);
 
 
-
-/*
-====================================================
-LOCAL VIN VALIDATION
-====================================================
-*/
+      }
 
 
-function isValidVin(
-  vin
-) {
-
-
-  return (
-
-    typeof vin ===
-      "string" &&
-
-    /^[A-HJ-NPR-Z0-9]{17}$/
-      .test(
-        vin
-      )
-
-  );
-
-}
-
-
-
-/*
-====================================================
-AUTOMATIC SCANNER
-====================================================
-*/
-
-
-async function scanFrame() {
-
-
-  if (
-    !scanning ||
-    locked
-  ) {
-
-    return;
-
-  }
-
-
-  try {
-
-
-    statusText.textContent =
-      "Reading VIN...";
-
-
-    /*
-    ------------------------------------------------
-    Capture current green-box image
-    ------------------------------------------------
-    */
-
-
-    const image =
-      captureVinArea();
-
-
-    /*
-    ------------------------------------------------
-    Send to Cloud Vision backend
-    ------------------------------------------------
-    */
-
-
-    const result =
-      await sendImage(
-        image
+      scheduleNextScan(
+        SCAN_INTERVAL
       );
-
-
-    console.log(
-      "CLOUD VISION RESULT:",
-      result
-    );
-
-
-
-    /*
-    =================================================
-    VIN FOUND
-    =================================================
-    */
-
-
-    if (
-      result &&
-      result.success === true &&
-      result.found === true &&
-      isValidVin(
-        result.vin
-      )
-    ) {
-
-
-      lockVin(
-        result.vin
-      );
-
-
-      return;
 
     }
 
 
 
     /*
-    =================================================
-    OCR WORKED BUT NO VIN FOUND
-    =================================================
+    ====================================================
+    SCHEDULE NEXT SCAN
+    ====================================================
     */
 
 
-    if (
-      result &&
-      result.success === true &&
-      result.found === false
+    function scheduleNextScan(
+      delay
     ) {
+
+
+      clearTimeout(
+        timer
+      );
+
+
+      timer =
+        setTimeout(
+
+          scanFrame,
+
+          delay
+
+        );
+
+    }
+
+
+
+    /*
+    ====================================================
+    VIN DETECTED
+    ====================================================
+    */
+
+
+    function lockVin(
+      vin
+    ) {
+
+
+      locked =
+        true;
+
+
+      scanning =
+        false;
+
+
+      detectedVin =
+        vin;
+
+
+      clearTimeout(
+        timer
+      );
 
 
       statusText.textContent =
-        "Point at VIN";
+        "VIN DETECTED ✓";
 
 
-      if (
-        result.visionText
-      ) {
-
-
-        detailsText.textContent =
-          "Vision saw: " +
-          result.visionText;
-
-
-      }
-
-      else if (
-        result.ocr
-      ) {
-
-
-        detailsText.textContent =
-          "Vision saw: " +
-          result.ocr;
-
-
-      }
-
-      else {
-
-
-        detailsText.textContent =
-          "Vision found no text";
-
-
-      }
-
-    }
-
-
-
-    /*
-    =================================================
-    BACKEND ERROR
-    =================================================
-    */
-
-
-    else if (
-      result &&
-      result.success === false
-    ) {
-
-
-      statusText.textContent =
-        "Backend error";
+      resultText.textContent =
+        vin;
 
 
       detailsText.textContent =
-        result.error ||
-        "Unknown backend error";
+        "Cloud Vision verified 17-character VIN";
 
+
+      scanArea.style.borderColor =
+        "#00ff66";
+
+
+      restartButton.style.display =
+        "block";
+
+
+      addInventoryButton.style.display =
+        "block";
+
+
+      if (
+        navigator.vibrate
+      ) {
+
+
+        navigator.vibrate(
+          [
+            100,
+            60,
+            100
+          ]
+        );
+
+
+      }
 
     }
 
 
-  }
 
-  catch (error) {
-
-
-    console.error(
-      "SCANNER ERROR:",
-      error
-    );
+    /*
+    ====================================================
+    SCAN AGAIN
+    ====================================================
+    */
 
 
-    statusText.textContent =
-      "Scanner error";
+    restartButton.addEventListener(
+
+      "click",
+
+      function() {
 
 
-    detailsText.textContent =
-      error.message ||
-      String(error);
+        locked =
+          false;
 
 
-  }
+        scanning =
+          true;
 
 
-
-  /*
-  ------------------------------------------------
-  Next scan only AFTER this request finished.
-
-  No overlapping Vision requests.
-  ------------------------------------------------
-  */
+        detectedVin =
+          "";
 
 
-  scheduleNextScan(
-    SCAN_INTERVAL
-  );
-
-}
+        resultText.textContent =
+          "";
 
 
-
-/*
-====================================================
-SCHEDULE NEXT SCAN
-====================================================
-*/
+        detailsText.textContent =
+          "Cloud Vision scanner ready";
 
 
-function scheduleNextScan(
-  delay
-) {
+        statusText.textContent =
+          "Point at VIN";
 
 
-  clearTimeout(
-    timer
-  );
+        restartButton.style.display =
+          "none";
 
 
-  timer =
-    setTimeout(
+        addInventoryButton.style.display =
+          "none";
 
-      scanFrame,
 
-      delay
+        scheduleNextScan(
+          300
+        );
+
+
+      }
 
     );
 
-}
 
 
+    /*
+    ====================================================
+    ADD TO INVENTORY
+    ====================================================
 
-/*
-====================================================
-VIN DETECTED
-====================================================
-*/
-
-
-/*
-====================================================
-VIN DETECTED
-====================================================
-*/
-
-function lockVin(
-  vin
-) {
-
-  locked = true;
-  scanning = false;
-
-  clearTimeout(
-    timer
-  );
+    NEXT STEP:
+    Decode VIN -> Year / Make / Model
+    Then open AppSheet form with all 4 values.
+    ====================================================
+    */
 
 
-  statusText.textContent =
-    "VIN DETECTED ✓";
+    addInventoryButton.addEventListener(
+
+      "click",
+
+      function() {
 
 
-  resultText.textContent =
-    vin;
+        if (
+          !detectedVin
+        ) {
+
+          return;
+
+        }
 
 
-  detailsText.textContent =
-    "Cloud Vision verified 17-character VIN";
+        statusText.textContent =
+          "VIN READY ✓";
 
 
-  scanArea.style.borderColor =
-    "#00ff66";
+        detailsText.textContent =
+          "Next: connect vehicle information to inventory";
 
 
-  restartButton.style.display =
-    "block";
-  
-addInventoryButton.style.display =
-  "block";
+      }
 
-  /*
-  ------------------------------------------------
-  Phone vibration
-  ------------------------------------------------
-  */
-
-  if (
-    navigator.vibrate
-  ) {
-
-    navigator.vibrate(
-      [
-        100,
-        60,
-        100
-      ]
-    );
-
-  }
-
-}
-
-
-  /*
-  ================================================
-  OPEN APPSHEET NEW VEHICLE FORM
-  ================================================
-  */
-
-  const defaults = {
-    "VIN": vin
-  };
-
-
-  const appUrl =
-    "https://www.appsheet.com/start/" +
-    APPSHEET_APP_ID +
-    "#control=" +
-    encodeURIComponent(
-      APPSHEET_FORM_VIEW
-    ) +
-    "&defaults=" +
-    encodeURIComponent(
-      JSON.stringify(defaults)
-    ) +
-    "&page=form";
-
-
-  detailsText.textContent =
-    "Opening vehicle form...";
-
-
-  setTimeout(
-    function() {
-
-      window.location.href =
-        appUrl;
-
-    },
-    700
-  );
-
-}
-
-
-
-/*
-====================================================
-SCAN AGAIN
-====================================================
-*/
-
-
-restartButton.addEventListener(
-
-  "click",
-
-  function() {
-
-
-    locked =
-      false;
-
-
-    scanning =
-      true;
-
-
-    resultText.textContent =
-      "";
-
-
-    detailsText.textContent =
-      "Cloud Vision scanner ready";
-
-
-    statusText.textContent =
-      "Point at VIN";
-
-
-    restartButton.style.display =
-      "none";
-
-
-    scheduleNextScan(
-      300
     );
 
 
-  }
 
-);
-
-
-
-/*
-====================================================
-START
-====================================================
-*/
+    /*
+    ====================================================
+    START
+    ====================================================
+    */
 
 
-window.addEventListener(
+    window.addEventListener(
 
-  "load",
+      "load",
 
-  startCamera
+      startCamera
 
-);
+    );
 
 
-</script>
+  </script>
 
 
 </body>
